@@ -1,10 +1,10 @@
 package lucene40
 
 import (
-	"github.com/balzaczyy/golucene/core/codec"
-	. "github.com/balzaczyy/golucene/core/index/model"
-	"github.com/balzaczyy/golucene/core/store"
-	"github.com/balzaczyy/golucene/core/util"
+	"github.com/jtejido/golucene/core/codec"
+	. "github.com/jtejido/golucene/core/index/model"
+	"github.com/jtejido/golucene/core/store"
+	"github.com/jtejido/golucene/core/util"
 )
 
 const (
@@ -48,11 +48,11 @@ func (w *Lucene40SegmentInfoWriter) Write(dir store.Directory,
 	err = store.Stream(output).WriteString(si.Version().String()).
 		WriteInt(int32(si.DocCount())).
 		WriteByte(func() byte {
-		if si.IsCompoundFile() {
-			return SEGMENT_INFO_YES
-		}
-		return byte((SEGMENT_INFO_NO + 256) % 256) // Go byte is non-negative, unlike Java
-	}()).WriteStringStringMap(si.Diagnostics()).
+			if si.IsCompoundFile() {
+				return SEGMENT_INFO_YES
+			}
+			return byte((SEGMENT_INFO_NO + 256) % 256) // Go byte is non-negative, unlike Java
+		}()).WriteStringStringMap(si.Diagnostics()).
 		WriteStringStringMap(map[string]string{}).
 		WriteStringSet(si.Files()).Close()
 	if err != nil {

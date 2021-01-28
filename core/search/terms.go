@@ -3,10 +3,10 @@ package search
 import (
 	"bytes"
 	"fmt"
-	"github.com/balzaczyy/golucene/core/index"
-	. "github.com/balzaczyy/golucene/core/index/model"
-	. "github.com/balzaczyy/golucene/core/search/model"
-	"github.com/balzaczyy/golucene/core/util"
+	"github.com/jtejido/golucene/core/index"
+	. "github.com/jtejido/golucene/core/index/model"
+	. "github.com/jtejido/golucene/core/search/model"
+	"github.com/jtejido/golucene/core/util"
 	"reflect"
 )
 
@@ -78,7 +78,7 @@ func NewTermWeight(owner *TermQuery, ss *IndexSearcher, termStates *index.TermCo
 	ans := &TermWeight{
 		TermQuery:  owner,
 		similarity: sim,
-		stats: sim.computeWeight(
+		stats: sim.ComputeWeight(
 			owner.boost,
 			ss.CollectionStatistics(owner.term.Field),
 			ss.TermStatistics(owner.term, termStates)),
@@ -120,7 +120,7 @@ func (tw *TermWeight) Scorer(context *index.AtomicReaderContext,
 		return nil, err
 	}
 	assert(docs != nil)
-	simScorer, err := tw.similarity.simScorer(tw.stats, context)
+	simScorer, err := tw.similarity.SimScorer(tw.stats, context)
 	if err != nil {
 		return nil, err
 	}
@@ -161,12 +161,12 @@ func (tw *TermWeight) Explain(ctx *index.AtomicReaderContext, doc int) (Explanat
 			if err != nil {
 				return nil, err
 			}
-			docScorer, err := tw.similarity.simScorer(tw.stats, ctx)
+			docScorer, err := tw.similarity.SimScorer(tw.stats, ctx)
 			if err != nil {
 				return nil, err
 			}
-			scoreExplanation := docScorer.explain(doc,
-				newExplanation(float32(freq), fmt.Sprintf("termFreq=%v", freq)))
+			scoreExplanation := docScorer.Explain(doc,
+				NewExplanation(float32(freq), fmt.Sprintf("termFreq=%v", freq)))
 			ans := newComplexExplanation(true,
 				scoreExplanation.(*ExplanationImpl).value,
 				fmt.Sprintf("weight(%v in %v) [%v], result of:",

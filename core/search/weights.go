@@ -1,9 +1,9 @@
 package search
 
 import (
-	"github.com/balzaczyy/golucene/core/index"
-	. "github.com/balzaczyy/golucene/core/search/model"
-	"github.com/balzaczyy/golucene/core/util"
+	"github.com/jtejido/golucene/core/index"
+	. "github.com/jtejido/golucene/core/search/model"
+	"github.com/jtejido/golucene/core/util"
 )
 
 // search/Weight.java

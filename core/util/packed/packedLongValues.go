@@ -1,7 +1,7 @@
 package packed
 
 import (
-	"github.com/balzaczyy/golucene/core/util"
+	"github.com/jtejido/golucene/core/util"
 	"reflect"
 )
 
@@ -220,7 +220,7 @@ func NewDeltaPackedLongValuesBuilder(pageSize int,
 	super := newPackedLongValuesBuilder(pageSize, acceptableOverheadRatio)
 	ans := &DeltaPackedLongValuesBuilderImpl{
 		PackedLongValuesBuilderImpl: super,
-		mins: make([]int64, len(super.values)),
+		mins:                        make([]int64, len(super.values)),
 	}
 	ans.ramBytesUsed += util.ShallowSizeOfInstance(reflect.TypeOf(&DeltaPackedLongValuesBuilderImpl{})) +
 		util.SizeOf(ans.mins)

@@ -2,8 +2,8 @@ package search
 
 import (
 	"fmt"
-	"github.com/balzaczyy/golucene/core/index"
-	"github.com/balzaczyy/golucene/core/search"
+	"github.com/jtejido/golucene/core/index"
+	"github.com/jtejido/golucene/core/search"
 	"math/rand"
 )
 

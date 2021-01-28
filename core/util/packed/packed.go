@@ -3,8 +3,8 @@ package packed
 import (
 	"errors"
 	"fmt"
-	"github.com/balzaczyy/golucene/core/codec"
-	"github.com/balzaczyy/golucene/core/util"
+	"github.com/jtejido/golucene/core/codec"
+	"github.com/jtejido/golucene/core/util"
 	"math"
 )
 
@@ -472,7 +472,7 @@ func ReaderNoHeader(in DataInput, format PackedFormat, version, valueCount int32
 		package packed
 
 		import (
-			"github.com/balzaczyy/golucene/core/util"
+			"github.com/jtejido/golucene/core/util"
 		)
 
 		`

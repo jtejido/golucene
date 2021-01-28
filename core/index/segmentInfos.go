@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/balzaczyy/golucene/core/codec"
-	. "github.com/balzaczyy/golucene/core/codec/spi"
-	. "github.com/balzaczyy/golucene/core/index/model"
-	"github.com/balzaczyy/golucene/core/store"
-	"github.com/balzaczyy/golucene/core/util"
+	"github.com/jtejido/golucene/core/codec"
+	. "github.com/jtejido/golucene/core/codec/spi"
+	. "github.com/jtejido/golucene/core/index/model"
+	"github.com/jtejido/golucene/core/store"
+	"github.com/jtejido/golucene/core/util"
 	"strconv"
 	"strings"
 )
@@ -93,7 +93,9 @@ func (fsf *FindSegmentsFile) run(commit IndexCommit) (interface{}, error) {
 			genInput, err := fsf.directory.OpenChecksumInput(INDEX_FILENAME_SEGMENTS_GEN, store.IO_CONTEXT_READ)
 			if err != nil {
 				message("segments.gen open: %v", err)
-			} else {
+			}
+
+			if genInput != nil {
 				defer genInput.Close()
 				// fmt.Println("Reading segments info...")
 

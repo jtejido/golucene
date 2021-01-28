@@ -3,13 +3,13 @@ package compressing
 import (
 	"errors"
 	"fmt"
-	"github.com/balzaczyy/golucene/core/codec"
-	"github.com/balzaczyy/golucene/core/codec/lucene40"
-	. "github.com/balzaczyy/golucene/core/codec/spi"
-	"github.com/balzaczyy/golucene/core/index/model"
-	"github.com/balzaczyy/golucene/core/store"
-	"github.com/balzaczyy/golucene/core/util"
-	"github.com/balzaczyy/golucene/core/util/packed"
+	"github.com/jtejido/golucene/core/codec"
+	"github.com/jtejido/golucene/core/codec/lucene40"
+	. "github.com/jtejido/golucene/core/codec/spi"
+	"github.com/jtejido/golucene/core/index/model"
+	"github.com/jtejido/golucene/core/store"
+	"github.com/jtejido/golucene/core/util"
+	"github.com/jtejido/golucene/core/util/packed"
 )
 
 // codec/compressing/CompressingStoredFieldsReader.java

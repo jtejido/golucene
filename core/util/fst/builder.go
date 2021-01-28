@@ -2,7 +2,11 @@ package fst
 
 import (
 	"fmt"
-	"github.com/balzaczyy/golucene/core/util"
+	"github.com/jtejido/golucene/core/util"
+)
+
+const (
+	DIRECT_ARC_LOAD_FACTOR = 4
 )
 
 /*
@@ -37,12 +41,13 @@ type Builder struct {
 
 	lastInput *util.IntsRefBuilder
 
-	// for packing
-	doPackFST               bool
-	acceptableOverheadRatio float32
-
 	// current frontier
-	frontier []*UnCompiledNode
+	frontier            []*UnCompiledNode
+	lastFrozenNode      int64
+	reusedBytesPerArc   []int
+	arcCount, nodeCount int64
+	allowArrayArcs      bool
+	bytes               *BytesStore
 }
 
 /*
@@ -53,22 +58,24 @@ construction tweaks. Read parameter documentation carefully.
 */
 func NewBuilder(inputType InputType, minSuffixCount1, minSuffixCount2 int,
 	doShareSuffix, doShareNonSingletonNodes bool, shareMaxTailLength int,
-	outputs Outputs, doPackFST bool,
-	acceptableOverheadRatio float32, allowArrayArcs bool, bytesPageBits int) *Builder {
+	outputs Outputs, allowArrayArcs bool, bytesPageBits int) *Builder {
 
-	fst := newFST(inputType, outputs, doPackFST, acceptableOverheadRatio, allowArrayArcs, bytesPageBits)
+	fst := newFST(inputType, outputs, bytesPageBits)
+	bytes := fst.bytes
+	assert(bytes != nil)
 	f := make([]*UnCompiledNode, 10)
 	ans := &Builder{
 		minSuffixCount1:          minSuffixCount1,
 		minSuffixCount2:          minSuffixCount2,
 		doShareNonSingletonNodes: doShareNonSingletonNodes,
 		shareMaxTailLength:       shareMaxTailLength,
-		doPackFST:                doPackFST,
-		acceptableOverheadRatio:  acceptableOverheadRatio,
-		fst:       fst,
-		NO_OUTPUT: outputs.NoOutput(),
-		frontier:  f,
-		lastInput: util.NewIntsRefBuilder(),
+		allowArrayArcs:           allowArrayArcs,
+		fst:                      fst,
+		bytes:                    bytes,
+		NO_OUTPUT:                outputs.NoOutput(),
+		frontier:                 f,
+		lastInput:                util.NewIntsRefBuilder(),
+		reusedBytesPerArc:        make([]int, 4),
 	}
 	if doShareSuffix {
 		ans.dedupHash = newNodeHash(fst, fst.bytes.reverseReaderAllowSingle(false))
@@ -82,21 +89,30 @@ func NewBuilder(inputType InputType, minSuffixCount1, minSuffixCount2 int,
 func (b *Builder) compileNode(nodeIn *UnCompiledNode, tailLength int) (*CompiledNode, error) {
 	var node int64
 	var err error
+	bytesPosStart := b.bytes.position()
 	if b.dedupHash != nil &&
 		(b.doShareNonSingletonNodes || nodeIn.NumArcs <= 1) &&
 		tailLength <= b.shareMaxTailLength {
 		if nodeIn.NumArcs == 0 {
-			node, err = b.fst.addNode(nodeIn)
+			node, err = b.fst.addNode(b, nodeIn)
 		} else {
-			node, err = b.dedupHash.add(nodeIn)
+			node, err = b.dedupHash.add(b, nodeIn)
+			b.lastFrozenNode = node
 		}
 	} else {
-		node, err = b.fst.addNode(nodeIn)
+		node, err = b.fst.addNode(b, nodeIn)
 	}
 	if err != nil {
 		return nil, err
 	}
 	assert(node != -2)
+
+	bytesPosEnd := b.bytes.position()
+	if bytesPosEnd != bytesPosStart {
+		// The FST added a new node:
+		assert(bytesPosEnd > bytesPosStart)
+		b.lastFrozenNode = node
+	}
 
 	nodeIn.Clear()
 
@@ -150,7 +166,11 @@ func (b *Builder) freezeTail(prefixLenPlus1 int) error {
 		if node.InputCount < int64(b.minSuffixCount2) ||
 			(b.minSuffixCount2 == 1 && node.InputCount == 1 && idx > 1) {
 			// drop all arcs
-			panic("not implemented yet")
+			for arcIdx := 0; arcIdx < node.NumArcs; arcIdx++ {
+				target := node.Arcs[arcIdx].Target
+				target.(*UnCompiledNode).Clear()
+			}
+			node.NumArcs = 0
 		}
 
 		if doPrune {
@@ -180,7 +200,8 @@ func (b *Builder) freezeTail(prefixLenPlus1 int) error {
 				}
 				parent.replaceLast(label, node, nextFinalOutput, isFinal)
 			} else {
-				panic("not implemented yet")
+				parent.replaceLast(b.lastInput.At(idx-1), node, nextFinalOutput, isFinal)
+				b.frontier[idx] = NewUnCompiledNode(b, idx)
 			}
 		}
 	}
@@ -217,6 +238,8 @@ func (b *Builder) Add(input *util.IntsRef, output interface{}) error {
 	assert2(b.lastInput.Length() == 0 || !input.Less(b.lastInput.Get()),
 		"inputs are added out of order, lastInput=%v vs input=%v",
 		b.lastInput.Get(), input)
+
+	assert(validOutput(output))
 
 	if input.Length == 0 {
 		// empty input: only allowed as first input. We have to special
@@ -279,6 +302,7 @@ func (b *Builder) Add(input *util.IntsRef, output interface{}) error {
 		parentNode := b.frontier[idx-1]
 
 		lastOutput := parentNode.lastOutput(input.Ints[input.Offset+idx-1])
+		assert(validOutput(lastOutput))
 
 		var commonOutputPrefix interface{}
 		var wordSuffix interface{}
@@ -301,12 +325,16 @@ func (b *Builder) Add(input *util.IntsRef, output interface{}) error {
 	} else {
 		// this new arc is private to this new input; set its arc output
 		// to the leftover output:
-		b.frontier[prefixLenPlus1-1].setLastOutput(input.At(prefixLenPlus1-1), output)
+		b.frontier[prefixLenPlus1-1].setLastOutput(input.Ints[input.Offset+prefixLenPlus1-1], output)
 	}
 
 	// save last input
 	b.lastInput.CopyInts(input)
 	return nil
+}
+
+func validOutput(output interface{}) bool {
+	return output == NO_OUTPUT || !equals(output, NO_OUTPUT)
 }
 
 func assert(ok bool) {
@@ -356,13 +384,6 @@ func (b *Builder) Finish() (*FST, error) {
 		return nil, err
 	}
 
-	if b.doPackFST {
-		n := b.fst.NodeCount() / 4
-		if n < 10 {
-			n = 10
-		}
-		return b.fst.pack(3, int(n), b.acceptableOverheadRatio)
-	}
 	return b.fst, nil
 }
 

@@ -3,8 +3,8 @@ package store
 import (
 	"errors"
 	"fmt"
-	"github.com/balzaczyy/golucene/core/codec"
-	"github.com/balzaczyy/golucene/core/util"
+	"github.com/jtejido/golucene/core/codec"
+	"github.com/jtejido/golucene/core/util"
 	"reflect"
 	"sync"
 )

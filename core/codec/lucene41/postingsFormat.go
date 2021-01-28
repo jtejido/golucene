@@ -2,10 +2,10 @@ package lucene41
 
 import (
 	"fmt"
-	"github.com/balzaczyy/golucene/core/codec/blocktree"
-	. "github.com/balzaczyy/golucene/core/codec/spi"
-	. "github.com/balzaczyy/golucene/core/index/model"
-	"github.com/balzaczyy/golucene/core/util"
+	"github.com/jtejido/golucene/core/codec/blocktree"
+	. "github.com/jtejido/golucene/core/codec/spi"
+	. "github.com/jtejido/golucene/core/index/model"
+	"github.com/jtejido/golucene/core/util"
 )
 
 func init() {

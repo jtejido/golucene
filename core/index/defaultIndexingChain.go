@@ -2,11 +2,11 @@ package index
 
 import (
 	"fmt"
-	"github.com/balzaczyy/golucene/core/analysis"
-	. "github.com/balzaczyy/golucene/core/codec/spi"
-	. "github.com/balzaczyy/golucene/core/index/model"
-	"github.com/balzaczyy/golucene/core/store"
-	"github.com/balzaczyy/golucene/core/util"
+	"github.com/jtejido/golucene/core/analysis"
+	. "github.com/jtejido/golucene/core/codec/spi"
+	. "github.com/jtejido/golucene/core/index/model"
+	"github.com/jtejido/golucene/core/store"
+	"github.com/jtejido/golucene/core/util"
 )
 
 /* Default general purpose indexing chain, which handles indexing all types of fields */
@@ -63,24 +63,31 @@ func (c *DefaultIndexingChain) flush(state *SegmentWriteState) (err error) {
 	// NOTE: caller (DWPT) handles aborting on any error from this method
 
 	numDocs := state.SegmentInfo.DocCount()
+
 	if err = c.writeNorms(state); err != nil {
+		println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
 		return
 	}
 	if err = c.writeDocValues(state); err != nil {
+
 		return
 	}
 
 	// it's possible all docs hit non-aboritng errors...
 	if err = c.initStoredFieldsWriter(); err != nil {
+
 		return
 	}
 	if err = c.fillStoredFields(numDocs); err != nil {
+
 		return
 	}
 	if err = c.storedFieldsWriter.Finish(state.FieldInfos, numDocs); err != nil {
+
 		return
 	}
 	if err = c.storedFieldsWriter.Close(); err != nil {
+
 		return
 	}
 
@@ -95,6 +102,7 @@ func (c *DefaultIndexingChain) flush(state *SegmentWriteState) (err error) {
 	}
 
 	if err = c.termsHash.flush(fieldsToFlush, state); err != nil {
+
 		return
 	}
 
@@ -102,6 +110,7 @@ func (c *DefaultIndexingChain) flush(state *SegmentWriteState) (err error) {
 	// alter the FieldInfo* if necessary. E.g., FreqProxTermsWriter does
 	// this with FieldInfo.storePayload.
 	infosWriter := c.docWriter.codec.FieldInfosFormat().FieldInfosWriter()
+
 	return infosWriter(state.Directory, state.SegmentInfo.Name, "", state.FieldInfos, store.IO_CONTEXT_DEFAULT)
 }
 
@@ -167,6 +176,7 @@ func (c *DefaultIndexingChain) writeNorms(state *SegmentWriteState) (err error) 
 	}()
 
 	if state.FieldInfos.HasNorms {
+
 		normsFormat := state.SegmentInfo.Codec().(Codec).NormsFormat()
 		assert(normsFormat != nil)
 		if normsConsumer, err = normsFormat.NormsConsumer(state); err != nil {
@@ -181,9 +191,12 @@ func (c *DefaultIndexingChain) writeNorms(state *SegmentWriteState) (err error) 
 			// it could have changed for this field since the first time we
 			// added it.
 			if !fi.OmitsNorms() {
+
 				if perField.norms != nil {
 					perField.norms.finish(state.SegmentInfo.DocCount())
+
 					if err = perField.norms.flush(state, normsConsumer); err != nil {
+
 						return
 					}
 					assert(fi.NormType() == DOC_VALUES_TYPE_NUMERIC)
@@ -594,10 +607,10 @@ func (f *PerField) invert(field IndexableField, first bool) error {
 			if f.invertState.position += posIncr; f.invertState.position < f.invertState.lastPosition {
 				assert2(posIncr != 0,
 					"first position increment must be > 0 (got 0) for field '%v'",
-					field.Name)
+					field.Name())
 				panic(fmt.Sprintf(
 					"position increments (and gaps) must be >= 0 (got %v) for field '%v'",
-					posIncr, field.Name))
+					posIncr, field.Name()))
 			}
 			f.invertState.lastPosition = f.invertState.position
 			if posIncr == 0 {
@@ -612,7 +625,7 @@ func (f *PerField) invert(field IndexableField, first bool) error {
 						"and endOffset must be >= startOffset, "+
 						"and offsets must not go backwards "+
 						"startOffset=%v,endOffset=%v,lastStartOffset=%v for field '%v'",
-					startOffset, endOffset, f.invertState.lastStartOffset, field.Name)
+					startOffset, endOffset, f.invertState.lastStartOffset, field.Name())
 				f.invertState.lastStartOffset = startOffset
 			}
 

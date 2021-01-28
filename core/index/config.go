@@ -1,8 +1,8 @@
 package index
 
 import (
-	"github.com/balzaczyy/golucene/core/analysis"
-	"github.com/balzaczyy/golucene/core/util"
+	"github.com/jtejido/golucene/core/analysis"
+	"github.com/jtejido/golucene/core/util"
 )
 
 // index/IndexWriterConfig.java
@@ -112,7 +112,7 @@ LogDocMergePolicy.
 func NewIndexWriterConfig(matchVersion util.Version, analyzer analysis.Analyzer) *IndexWriterConfig {
 	return &IndexWriterConfig{
 		LiveIndexWriterConfigImpl: newLiveIndexWriterConfig(analyzer, matchVersion),
-		writer: util.NewSetOnce(),
+		writer:                    util.NewSetOnce(),
 	}
 }
 

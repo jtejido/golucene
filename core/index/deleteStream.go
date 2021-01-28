@@ -3,9 +3,9 @@ package index
 import (
 	"errors"
 	"fmt"
-	. "github.com/balzaczyy/golucene/core/codec/spi"
-	"github.com/balzaczyy/golucene/core/store"
-	"github.com/balzaczyy/golucene/core/util"
+	. "github.com/jtejido/golucene/core/codec/spi"
+	"github.com/jtejido/golucene/core/store"
+	"github.com/jtejido/golucene/core/util"
 	"log"
 	"math"
 	"sort"

@@ -2,8 +2,8 @@ package index
 
 import (
 	"fmt"
-	. "github.com/balzaczyy/golucene/core/codec/spi"
-	// "github.com/balzaczyy/golucene/core/util"
+	. "github.com/jtejido/golucene/core/codec/spi"
+	// "github.com/jtejido/golucene/core/util"
 	"io"
 	"math"
 	"sort"
@@ -474,8 +474,10 @@ type BySizeDescendingSegments struct {
 	spi    MergePolicyImplSPI
 }
 
-func (a *BySizeDescendingSegments) Len() int      { return len(a.values) }
-func (a *BySizeDescendingSegments) Swap(i, j int) { a.values[i], a.values[j] = a.values[j], a.values[i] }
+func (a *BySizeDescendingSegments) Len() int { return len(a.values) }
+func (a *BySizeDescendingSegments) Swap(i, j int) {
+	a.values[i], a.values[j] = a.values[j], a.values[i]
+}
 func (a *BySizeDescendingSegments) Less(i, j int) bool {
 	var err error
 	var sz1, sz2 int64
@@ -863,7 +865,7 @@ func (mp *LogMergePolicy) FindMerges(mergeTrigger MergeTrigger,
 			mp.message(fmt.Sprintf("seg=%v level=%v size=%.3f MB%v",
 				w.readerPool.segmentToString(info),
 				infoLevel.level,
-				segBytes/1024/1024,
+				float64(segBytes)/1024/1024,
 				extra), w)
 		}
 	}

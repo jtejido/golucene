@@ -6,11 +6,11 @@ import (
 
 import (
 	"fmt"
-	// docu "github.com/balzaczyy/golucene/core/document"
-	. "github.com/balzaczyy/golucene/core/codec/spi"
-	. "github.com/balzaczyy/golucene/core/index/model"
-	"github.com/balzaczyy/golucene/core/store"
-	"github.com/balzaczyy/golucene/core/util"
+	// docu "github.com/jtejido/golucene/core/document"
+	. "github.com/jtejido/golucene/core/codec/spi"
+	. "github.com/jtejido/golucene/core/index/model"
+	"github.com/jtejido/golucene/core/store"
+	"github.com/jtejido/golucene/core/util"
 	"sync/atomic"
 )
 

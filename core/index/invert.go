@@ -1,8 +1,8 @@
 package index
 
 import (
-	. "github.com/balzaczyy/golucene/core/analysis/tokenattributes"
-	"github.com/balzaczyy/golucene/core/util"
+	. "github.com/jtejido/golucene/core/analysis/tokenattributes"
+	"github.com/jtejido/golucene/core/util"
 )
 
 // index/DocInvertState.java

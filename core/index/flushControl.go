@@ -3,7 +3,7 @@ package index
 import (
 	"container/list"
 	"fmt"
-	"github.com/balzaczyy/golucene/core/util"
+	"github.com/jtejido/golucene/core/util"
 	"math"
 	"sync"
 	"sync/atomic"
@@ -366,7 +366,7 @@ func (fc *DocumentsWriterFlushControl) internalTryCheckOutForFlush(perThread *Th
 
 func (fc *DocumentsWriterFlushControl) String() string {
 	return fmt.Sprintf("DocumentsWriterFlushControl [activeBytes=%v, flushBytes=%v]",
-		fc.activeBytes, fc.flushBytes)
+		fc.activeBytes(), fc.flushBytes())
 }
 
 func (fc *DocumentsWriterFlushControl) close() {
@@ -415,7 +415,7 @@ func (fc *DocumentsWriterFlushControl) markForFullFlush() {
 		defer fc.Unlock()
 
 		assert2(!fc.fullFlush, "called DWFC#markForFullFlush() while full flush is still running")
-		assertn(len(fc.fullFlushBuffer) == 0, "full flush buffer should be empty: ", fc.fullFlushBuffer)
+		assertn(len(fc.fullFlushBuffer) == 0, "full flush buffer should be empty: %v", fc.fullFlushBuffer)
 
 		fc.fullFlush = true
 		res := fc.documentsWriter.deleteQueue

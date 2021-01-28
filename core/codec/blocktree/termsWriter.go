@@ -2,13 +2,13 @@ package blocktree
 
 import (
 	"fmt"
-	"github.com/balzaczyy/golucene/core/codec"
-	. "github.com/balzaczyy/golucene/core/codec/spi"
-	. "github.com/balzaczyy/golucene/core/index/model"
-	"github.com/balzaczyy/golucene/core/store"
-	"github.com/balzaczyy/golucene/core/util"
-	"github.com/balzaczyy/golucene/core/util/fst"
-	"github.com/balzaczyy/golucene/core/util/packed"
+	"github.com/jtejido/golucene/core/codec"
+	. "github.com/jtejido/golucene/core/codec/spi"
+	. "github.com/jtejido/golucene/core/index/model"
+	"github.com/jtejido/golucene/core/store"
+	"github.com/jtejido/golucene/core/util"
+	"github.com/jtejido/golucene/core/util/fst"
+	//"github.com/jtejido/golucene/core/util/packed"
 	"io"
 	"math"
 	"strings"
@@ -318,8 +318,7 @@ func (b *PendingBlock) compileIndex(blocks []*PendingBlock,
 	outputs := fst.ByteSequenceOutputsSingleton()
 	indexBuilder := fst.NewBuilder(fst.INPUT_TYPE_BYTE1,
 		0, 0, true, false, int(math.MaxInt32),
-		outputs, false,
-		packed.PackedInts.COMPACT, true, 15)
+		outputs, true, 15)
 
 	// fmt.Printf("  compile index for prefix=%v\n", b.prefix)
 

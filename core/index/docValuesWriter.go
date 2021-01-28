@@ -1,10 +1,10 @@
 package index
 
 import (
-	. "github.com/balzaczyy/golucene/core/codec/spi"
-	. "github.com/balzaczyy/golucene/core/index/model"
-	"github.com/balzaczyy/golucene/core/util"
-	"github.com/balzaczyy/golucene/core/util/packed"
+	. "github.com/jtejido/golucene/core/codec/spi"
+	. "github.com/jtejido/golucene/core/index/model"
+	"github.com/jtejido/golucene/core/util"
+	"github.com/jtejido/golucene/core/util/packed"
 )
 
 type DocValuesWriter interface {
@@ -80,6 +80,7 @@ func (w *NumericDocValuesWriter) flush(state *SegmentWriteState,
 
 	maxDoc := state.SegmentInfo.DocCount()
 	values := w.pending.Build()
+
 	dvConsumer.AddNumericField(w.fieldInfo, func() func() (interface{}, bool) {
 		return newNumericIterator(maxDoc, values, w.docsWithField)
 	})

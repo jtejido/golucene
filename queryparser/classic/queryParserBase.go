@@ -3,8 +3,8 @@ package classic
 import (
 	"errors"
 	"fmt"
-	"github.com/balzaczyy/golucene/core/analysis"
-	"github.com/balzaczyy/golucene/core/search"
+	"github.com/jtejido/golucene/core/analysis"
+	"github.com/jtejido/golucene/core/search"
 	"strings"
 )
 

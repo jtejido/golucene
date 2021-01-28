@@ -1,7 +1,7 @@
 package index
 
 import (
-	. "github.com/balzaczyy/golucene/core/index/model"
+	. "github.com/jtejido/golucene/core/index/model"
 )
 
 type MultiFields struct {
@@ -27,10 +27,11 @@ func (mf MultiFields) Terms(field string) Terms {
 	// Gather all sub-readers that share this field
 	for i, v := range mf.subs {
 		terms := v.Terms(field)
-		if terms.Iterator != nil {
+		if terms != nil {
 			subs2 = append(subs2, terms)
 			slices2 = append(slices2, mf.subSlices[i])
 		}
+
 	}
 	if len(subs2) == 0 {
 		return nil
@@ -79,8 +80,9 @@ func GetMultiFields(r IndexReader) Fields {
 func GetMultiTerms(r IndexReader, field string) Terms {
 	// log.Printf("Loading field '%v' from %v", field, r)
 	fields := GetMultiFields(r)
-	if fields.Terms == nil {
+	if fields == nil {
 		return nil
 	}
+
 	return fields.Terms(field)
 }

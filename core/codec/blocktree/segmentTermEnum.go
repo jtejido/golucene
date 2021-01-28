@@ -2,10 +2,10 @@ package blocktree
 
 import (
 	"fmt"
-	. "github.com/balzaczyy/golucene/core/index/model"
-	"github.com/balzaczyy/golucene/core/store"
-	"github.com/balzaczyy/golucene/core/util"
-	"github.com/balzaczyy/golucene/core/util/fst"
+	. "github.com/jtejido/golucene/core/index/model"
+	"github.com/jtejido/golucene/core/store"
+	"github.com/jtejido/golucene/core/util"
+	"github.com/jtejido/golucene/core/util/fst"
 	"sort"
 	// "strconv"
 )

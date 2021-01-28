@@ -2,7 +2,12 @@ package fst
 
 import (
 	"fmt"
-	"github.com/balzaczyy/golucene/core/util"
+	"github.com/jtejido/golucene/core/util"
+	"reflect"
+)
+
+var (
+	BYTES_STORE_BASE_RAM_BYTES_USED = util.ShallowSizeOfInstance(reflect.TypeOf(BytesStore{})) + util.ShallowSizeOfInstance(reflect.TypeOf([][]byte{}))
 )
 
 type BytesStore struct {
@@ -69,6 +74,13 @@ func (bs *BytesStore) WriteByte(b byte) error {
 	}
 	bs.current[bs.nextWrite] = b
 	bs.nextWrite++
+	return nil
+}
+
+func (s *BytesStore) writeByteAt(dest int64, b byte) error {
+	blockIndex := int(dest >> s.blockBits)
+	block := s.blocks[blockIndex]
+	block[int(dest&int64(s.blockMask))] = b
 	return nil
 }
 
@@ -209,6 +221,14 @@ func (s *BytesStore) finish() {
 		s.blocks[len(s.blocks)-1] = lastBuffer
 		s.current = nil
 	}
+}
+
+func (s *BytesStore) RamBytesUsed() int64 {
+	var size int64 = BYTES_STORE_BASE_RAM_BYTES_USED
+	for _, block := range s.blocks {
+		size += util.SizeOf(block)
+	}
+	return size
 }
 
 /* Writes all of our bytes to the target DataOutput. */

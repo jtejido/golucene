@@ -1,7 +1,7 @@
 package index
 
 // import (
-// 	"github.com/balzaczyy/golucene/core/index/model"
+// 	"github.com/jtejido/golucene/core/index/model"
 // )
 
 // type DocFieldConsumer interface {

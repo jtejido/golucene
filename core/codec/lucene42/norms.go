@@ -1,9 +1,9 @@
 package lucene42
 
 import (
-	. "github.com/balzaczyy/golucene/core/codec/spi"
-	. "github.com/balzaczyy/golucene/core/index/model"
-	"github.com/balzaczyy/golucene/core/util/packed"
+	. "github.com/jtejido/golucene/core/codec/spi"
+	. "github.com/jtejido/golucene/core/index/model"
+	"github.com/jtejido/golucene/core/util/packed"
 )
 
 // lucene42/Lucene42NormsFormat.java

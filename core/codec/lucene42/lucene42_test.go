@@ -1,7 +1,7 @@
 package lucene42
 
 import (
-	"github.com/balzaczyy/golucene/core/store"
+	"github.com/jtejido/golucene/core/store"
 	"testing"
 )
 

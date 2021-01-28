@@ -1,7 +1,7 @@
 package index
 
 import (
-	. "github.com/balzaczyy/golucene/core/codec/spi"
+	. "github.com/jtejido/golucene/core/codec/spi"
 	"strings"
 	"sync"
 )

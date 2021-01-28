@@ -3,10 +3,10 @@ package lucene40
 import (
 	"errors"
 	"fmt"
-	"github.com/balzaczyy/golucene/core/codec"
-	. "github.com/balzaczyy/golucene/core/index/model"
-	"github.com/balzaczyy/golucene/core/store"
-	"github.com/balzaczyy/golucene/core/util"
+	"github.com/jtejido/golucene/core/codec"
+	. "github.com/jtejido/golucene/core/index/model"
+	"github.com/jtejido/golucene/core/store"
+	"github.com/jtejido/golucene/core/util"
 )
 
 // lucene40/Lucene40SegmentInfoReader.java

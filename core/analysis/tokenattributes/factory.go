@@ -2,7 +2,7 @@ package tokenattributes
 
 import (
 	"fmt"
-	"github.com/balzaczyy/golucene/core/util"
+	"github.com/jtejido/golucene/core/util"
 )
 
 type DefaultAttributeFactory struct{}
@@ -12,7 +12,7 @@ func (fac *DefaultAttributeFactory) Create(name string) util.AttributeImpl {
 	case "PositionIncrementAttribute":
 		return newPositionIncrementAttributeImpl()
 	case "CharTermAttribute":
-		return newCharTermAttributeImpl()
+		return NewCharTermAttributeImpl()
 	case "OffsetAttribute":
 		return newOffsetAttributeImpl()
 	case "TypeAttribute":

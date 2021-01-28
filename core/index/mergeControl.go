@@ -2,8 +2,8 @@ package index
 
 import (
 	"container/list"
-	. "github.com/balzaczyy/golucene/core/codec/spi"
-	"github.com/balzaczyy/golucene/core/util"
+	. "github.com/jtejido/golucene/core/codec/spi"
+	"github.com/jtejido/golucene/core/util"
 	"sync"
 )
 

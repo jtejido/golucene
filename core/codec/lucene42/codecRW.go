@@ -1,11 +1,11 @@
 package lucene42
 
 import (
-	"github.com/balzaczyy/golucene/core/codec/lucene40"
-	"github.com/balzaczyy/golucene/core/codec/lucene41"
-	"github.com/balzaczyy/golucene/core/codec/perfield"
-	. "github.com/balzaczyy/golucene/core/codec/spi"
-	. "github.com/balzaczyy/golucene/core/index/model"
+	"github.com/jtejido/golucene/core/codec/lucene40"
+	"github.com/jtejido/golucene/core/codec/lucene41"
+	"github.com/jtejido/golucene/core/codec/perfield"
+	. "github.com/jtejido/golucene/core/codec/spi"
+	. "github.com/jtejido/golucene/core/index/model"
 )
 
 // lucene42/Lucene42RWCodec.java

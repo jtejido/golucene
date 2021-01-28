@@ -1,7 +1,7 @@
 package compressing
 
 import (
-	"github.com/balzaczyy/golucene/core/util/packed"
+	"github.com/jtejido/golucene/core/util/packed"
 )
 
 // codecs/compressing/LZ4.java#compress

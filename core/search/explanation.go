@@ -21,6 +21,8 @@ type ExplanationSPI interface {
 	// about this Explanation, without the Details.
 	Summary() string
 	Details() []Explanation
+	AddDetail(detail Explanation)
+	SetDetails(details []Explanation)
 }
 
 /* Expert: Describes the score computation for document and query. */
@@ -31,7 +33,7 @@ type ExplanationImpl struct {
 	details     []Explanation // sub-explanations
 }
 
-func newExplanation(value float32, description string) *ExplanationImpl {
+func NewExplanation(value float32, description string) *ExplanationImpl {
 	ans := &ExplanationImpl{value: value, description: description}
 	ans.spi = ans
 	return ans
@@ -51,8 +53,13 @@ func (exp *ExplanationImpl) Details() []Explanation {
 }
 
 // Adds a sub-node to this explanation node
-func (exp *ExplanationImpl) addDetail(detail Explanation) {
+func (exp *ExplanationImpl) AddDetail(detail Explanation) {
 	exp.details = append(exp.details, detail)
+}
+
+// Sets sub-nodes to this explanation node
+func (exp *ExplanationImpl) SetDetails(details []Explanation) {
+	exp.details = details
 }
 
 // Render an explanation as text.
@@ -96,7 +103,7 @@ func newEmptyComplexExplanation() *ComplexExplanation {
 
 func newComplexExplanation(match bool, value float32, desc string) *ComplexExplanation {
 	ans := new(ComplexExplanation)
-	ans.ExplanationImpl = newExplanation(value, desc)
+	ans.ExplanationImpl = NewExplanation(value, desc)
 	ans.spi = ans
 	ans.match = match
 	return ans

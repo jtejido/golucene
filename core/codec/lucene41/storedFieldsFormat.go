@@ -1,7 +1,7 @@
 package lucene41
 
 import (
-	"github.com/balzaczyy/golucene/core/codec/compressing"
+	"github.com/jtejido/golucene/core/codec/compressing"
 )
 
 // lucene41/Lucene41StoredFieldsFormat.java

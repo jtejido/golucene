@@ -1,7 +1,7 @@
 package tokenattributes
 
 import (
-	"github.com/balzaczyy/golucene/core/util"
+	"github.com/jtejido/golucene/core/util"
 )
 
 /*
@@ -22,10 +22,10 @@ type PackedTokenAttributeImpl struct {
 
 func NewPackedTokenAttribute() util.AttributeImpl {
 	return &PackedTokenAttributeImpl{
-		CharTermAttributeImpl: newCharTermAttributeImpl(),
-		typ:               DEFAULT_TYPE,
-		positionIncrement: 1,
-		positionLength:    1,
+		CharTermAttributeImpl: NewCharTermAttributeImpl(),
+		typ:                   DEFAULT_TYPE,
+		positionIncrement:     1,
+		positionLength:        1,
 	}
 }
 

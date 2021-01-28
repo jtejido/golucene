@@ -1,12 +1,12 @@
 // This file has been automatically generated, DO NOT EDIT
 
-		package packed
+package packed
 
-		import (
-			"github.com/balzaczyy/golucene/core/util"
-		)
+import (
+	"github.com/jtejido/golucene/core/util"
+)
 
-		// Direct wrapping of 8-bits values to a backing array.
+// Direct wrapping of 8-bits values to a backing array.
 type Direct8 struct {
 	*MutableImpl
 	values []byte
@@ -17,7 +17,7 @@ func newDirect8(valueCount int) *Direct8 {
 		values: make([]byte, valueCount),
 	}
 	ans.MutableImpl = newMutableImpl(ans, valueCount, 8)
-  return ans
+	return ans
 }
 
 func newDirect8FromInput(version int32, in DataInput, valueCount int) (r PackedIntsReader, err error) {
@@ -50,44 +50,43 @@ func (d *Direct8) RamBytesUsed() int64 {
 			util.SizeOf(d.values))
 }
 
-		func (d *Direct8) Clear() {
-			for i, _ := range d.values {
-				d.values[i] = 0
-			}
-		}
+func (d *Direct8) Clear() {
+	for i, _ := range d.values {
+		d.values[i] = 0
+	}
+}
 
-		func (d *Direct8) getBulk(index int, arr []int64) int {
-			assert2(len(arr) > 0, "len must be > 0 (got %v)", len(arr))
-			assert(index >= 0 && index < d.valueCount)
+func (d *Direct8) getBulk(index int, arr []int64) int {
+	assert2(len(arr) > 0, "len must be > 0 (got %v)", len(arr))
+	assert(index >= 0 && index < d.valueCount)
 
-			gets := d.valueCount - index
-			if len(arr) < gets {
-				gets = len(arr)
-			}
-			for i, _ := range arr[:gets] {
-				arr[i] = int64(d.values[index+i]) & 0xFF
-			}
-			return gets
-		}
+	gets := d.valueCount - index
+	if len(arr) < gets {
+		gets = len(arr)
+	}
+	for i, _ := range arr[:gets] {
+		arr[i] = int64(d.values[index+i]) & 0xFF
+	}
+	return gets
+}
 
-		func (d *Direct8) setBulk(index int, arr []int64) int {
-			assert2(len(arr) > 0, "len must be > 0 (got %v)", len(arr))
-			assert(index >= 0 && index < d.valueCount)
+func (d *Direct8) setBulk(index int, arr []int64) int {
+	assert2(len(arr) > 0, "len must be > 0 (got %v)", len(arr))
+	assert(index >= 0 && index < d.valueCount)
 
-			sets := d.valueCount - index
-			if len(arr) < sets {
-				sets = len(arr)
-			}
-			for i, _ := range arr {
-				d.values[index+i] = byte(arr[i])
-			}
-			return sets
-		}
+	sets := d.valueCount - index
+	if len(arr) < sets {
+		sets = len(arr)
+	}
+	for i, _ := range arr {
+		d.values[index+i] = byte(arr[i])
+	}
+	return sets
+}
 
-		func (d *Direct8) fill(from, to int, val int64) {
-			assert(val == val & 0xFF)
-			for i := from; i < to; i ++ {
-				d.values[i] = byte(val)
-			}
-		}
-				
+func (d *Direct8) fill(from, to int, val int64) {
+	assert(val == val&0xFF)
+	for i := from; i < to; i++ {
+		d.values[i] = byte(val)
+	}
+}

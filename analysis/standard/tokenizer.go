@@ -1,9 +1,9 @@
 package standard
 
 import (
-	. "github.com/balzaczyy/golucene/core/analysis"
-	. "github.com/balzaczyy/golucene/core/analysis/tokenattributes"
-	"github.com/balzaczyy/golucene/core/util"
+	. "github.com/jtejido/golucene/core/analysis"
+	. "github.com/jtejido/golucene/core/analysis/tokenattributes"
+	"github.com/jtejido/golucene/core/util"
 	"io"
 )
 
@@ -83,7 +83,7 @@ type StandardTokenizer struct {
 Creates a new instance of the StandardTokenizer. Attaches the input
 to the newly created JFlex scanner.
 */
-func newStandardTokenizer(matchVersion util.Version, input io.RuneReader) *StandardTokenizer {
+func NewStandardTokenizer(matchVersion util.Version, input io.RuneReader) *StandardTokenizer {
 	ans := &StandardTokenizer{
 		Tokenizer:      NewTokenizer(input),
 		maxTokenLength: DEFAULT_MAX_TOKEN_LENGTH,

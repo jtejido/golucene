@@ -2,8 +2,8 @@ package search
 
 import (
 	"bytes"
-	"github.com/balzaczyy/golucene/core/index"
-	"github.com/balzaczyy/golucene/core/util"
+	"github.com/jtejido/golucene/core/index"
+	"github.com/jtejido/golucene/core/util"
 )
 
 const maxClauseCount = 1024

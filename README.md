@@ -1,13 +1,9 @@
-[![Build Status](https://travis-ci.org/balzaczyy/golucene.svg?branch=master)](https://travis-ci.org/balzaczyy/golucene)
-[![Coverage Status](https://coveralls.io/repos/balzaczyy/golucene/badge.png?branch=lucene410)](https://coveralls.io/r/balzaczyy/golucene?branch=lucene410)
-[![GoDoc](https://godoc.org/github.com/balzaczyy/golucene?status.svg)](https://godoc.org/github.com/balzaczyy/golucene)
-
 golucene
 ========
 
 A [Go](http://golang.org) port of [Apache Lucene](http://lucene.apache.org). Check out the online demo [here](http://hamlet.zhouyiyan.cn/)!
 
-Sync to Lucene Java 4.10 2014/10/22
+Continuing on to implementing all of v4.10.4 with additional experimentation on different ranking models.
 
 Why do we need yet another port of Lucene?
 ------------------------------------------
@@ -33,7 +29,7 @@ Go 1.2+
 Installation
 ------------
 
-	go get -u github.com/balzaczyy/golucene
+	go get -u github.com/jtejido/golucene
 
 Usage
 -----

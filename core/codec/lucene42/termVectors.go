@@ -1,7 +1,7 @@
 package lucene42
 
 import (
-	"github.com/balzaczyy/golucene/core/codec/compressing"
+	"github.com/jtejido/golucene/core/codec/compressing"
 )
 
 // lucene42/Lucene42TermVectorsFormat.java

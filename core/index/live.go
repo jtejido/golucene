@@ -2,9 +2,9 @@ package index
 
 import (
 	"fmt"
-	"github.com/balzaczyy/golucene/core/analysis"
-	. "github.com/balzaczyy/golucene/core/codec/spi"
-	"github.com/balzaczyy/golucene/core/util"
+	"github.com/jtejido/golucene/core/analysis"
+	. "github.com/jtejido/golucene/core/codec/spi"
+	"github.com/jtejido/golucene/core/util"
 	"reflect"
 )
 
@@ -330,7 +330,7 @@ checkIntegrityAtMerge=%v
 		conf.mergeScheduler, WRITE_LOCK_TIMEOUT,
 		conf.writeLockTimeout, conf.codec,
 		reflect.TypeOf(conf.infoStream), conf.mergePolicy,
-		conf.indexerThreadPool, conf.readerPooling,
+		conf.indexerThreadPool(), conf.readerPooling,
 		conf.perRoutineHardLimitMB, conf.useCompoundFile,
 		conf.checkIntegrityAtMerge)
 }

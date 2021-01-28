@@ -3,7 +3,7 @@ package store
 import (
 	// "hash"
 	// "hash/crc32"
-	"github.com/balzaczyy/golucene/core/util"
+	"github.com/jtejido/golucene/core/util"
 )
 
 // store/ChecksumIndexInput.java

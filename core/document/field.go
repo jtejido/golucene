@@ -3,9 +3,9 @@ package document
 import (
 	"bytes"
 	"fmt"
-	"github.com/balzaczyy/golucene/core/analysis"
-	. "github.com/balzaczyy/golucene/core/analysis/tokenattributes"
-	"github.com/balzaczyy/golucene/core/index/model"
+	"github.com/jtejido/golucene/core/analysis"
+	. "github.com/jtejido/golucene/core/analysis/tokenattributes"
+	"github.com/jtejido/golucene/core/index/model"
 	"io"
 	"log"
 	"strconv"

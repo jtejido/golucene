@@ -1,9 +1,9 @@
 package index
 
 import (
-	. "github.com/balzaczyy/golucene/core/codec/spi"
-	. "github.com/balzaczyy/golucene/core/index"
-	tu "github.com/balzaczyy/golucene/test_framework/util"
+	. "github.com/jtejido/golucene/core/codec/spi"
+	. "github.com/jtejido/golucene/core/index"
+	tu "github.com/jtejido/golucene/test_framework/util"
 	"math"
 	"math/rand"
 	"time"

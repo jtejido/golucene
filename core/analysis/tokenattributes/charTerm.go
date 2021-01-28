@@ -1,7 +1,7 @@
 package tokenattributes
 
 import (
-	"github.com/balzaczyy/golucene/core/util"
+	"github.com/jtejido/golucene/core/util"
 )
 
 /* The term text of a Token. */
@@ -17,6 +17,7 @@ type CharTermAttribute interface {
 	// NOTE: the returned buffer may be larger than the valid Length().
 	Buffer() []rune
 	Length() int
+	SetLength(l int)
 	// Appends teh specified string to this character sequence.
 	//
 	// The character of the string argument are appended, in order,
@@ -35,7 +36,7 @@ type CharTermAttributeImpl struct {
 	bytes      *util.BytesRefBuilder
 }
 
-func newCharTermAttributeImpl() *CharTermAttributeImpl {
+func NewCharTermAttributeImpl() *CharTermAttributeImpl {
 	return &CharTermAttributeImpl{
 		termBuffer: make([]rune, util.Oversize(MIN_BUFFER_SIZE, util.NUM_BYTES_CHAR)),
 		bytes:      util.NewBytesRefBuilder(),
@@ -74,6 +75,10 @@ func (a *CharTermAttributeImpl) BytesRef() *util.BytesRef {
 
 func (a *CharTermAttributeImpl) Length() int {
 	return a.termLength
+}
+
+func (a *CharTermAttributeImpl) SetLength(l int) {
+	a.termLength = l
 }
 
 func (a *CharTermAttributeImpl) AppendString(s string) CharTermAttribute {

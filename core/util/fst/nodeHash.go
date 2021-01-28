@@ -2,7 +2,7 @@ package fst
 
 import (
 	// "fmt"
-	"github.com/balzaczyy/golucene/core/util/packed"
+	"github.com/jtejido/golucene/core/util/packed"
 )
 
 /* Used to dedup states (lookup already-frozen states) */
@@ -116,7 +116,7 @@ func hashPtr(obj interface{}) (h int64) {
 	return
 }
 
-func (nh *NodeHash) add(nodeIn *UnCompiledNode) (int64, error) {
+func (nh *NodeHash) add(builder *Builder, nodeIn *UnCompiledNode) (int64, error) {
 	// fmt.Printf("hash: add count=%v vs %v mask=%v\n", nh.count, nh.table.Size(), nh.mask)
 	h := nh.hash(nodeIn)
 	pos := h & nh.mask
@@ -125,7 +125,7 @@ func (nh *NodeHash) add(nodeIn *UnCompiledNode) (int64, error) {
 		v := nh.table.Get(pos)
 		if v == 0 {
 			// freeze & add
-			node, err := nh.fst.addNode(nodeIn)
+			node, err := nh.fst.addNode(builder, nodeIn)
 			if err != nil {
 				return 0, err
 			}

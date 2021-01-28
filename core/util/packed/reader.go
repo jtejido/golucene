@@ -1,7 +1,7 @@
 package packed
 
 import (
-	"github.com/balzaczyy/golucene/core/util"
+	"github.com/jtejido/golucene/core/util"
 )
 
 /* A reader which has all its values equal to 0 (bitsPerValue = 0). */

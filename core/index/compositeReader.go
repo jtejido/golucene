@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"container/list"
 	"fmt"
-	. "github.com/balzaczyy/golucene/core/codec/spi"
+	. "github.com/jtejido/golucene/core/codec/spi"
 	"reflect"
 )
 

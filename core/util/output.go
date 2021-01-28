@@ -14,6 +14,7 @@ safe (it keeps internal state like file position).
 type DataOutput interface {
 	DataWriter
 	WriteInt(i int32) error
+	WriteShort(i int16) error
 	WriteVInt(i int32) error
 	WriteLong(i int64) error
 	WriteVLong(i int64) error
@@ -55,6 +56,16 @@ func (out *DataOutputImpl) WriteInt(i int32) error {
 			}
 		}
 	}
+	return err
+}
+
+func (out *DataOutputImpl) WriteShort(i int16) error {
+	assert(out.Writer != nil)
+	var err error
+	if err = out.Writer.WriteByte(byte(i >> 8)); err == nil {
+		err = out.Writer.WriteByte(byte(i))
+	}
+
 	return err
 }
 

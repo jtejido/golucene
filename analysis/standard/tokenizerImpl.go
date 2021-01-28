@@ -1,7 +1,7 @@
 package standard
 
 import (
-	. "github.com/balzaczyy/golucene/core/analysis/tokenattributes"
+	. "github.com/jtejido/golucene/core/analysis/tokenattributes"
 	"io"
 )
 
@@ -415,8 +415,8 @@ func (t *StandardTokenizerImpl) zzRefill() (bool, error) {
 	if t.zzStartRead > 0 {
 		t.zzEndRead += t.zzFinalHighSurrogate
 		t.zzFinalHighSurrogate = 0
+		//copy(t.zzBuffer[:t.zzEndRead-t.zzStartRead], t.zzBuffer[t.zzStartRead:t.zzEndRead-t.zzStartRead])
 		copy(t.zzBuffer, t.zzBuffer[t.zzStartRead:t.zzEndRead])
-
 		// translate stored positions
 		t.zzEndRead -= t.zzStartRead
 		t.zzCurrentPos -= t.zzStartRead
@@ -430,9 +430,11 @@ func (t *StandardTokenizerImpl) zzRefill() (bool, error) {
 	var err error
 	for totalRead < requested && err != io.EOF {
 		var numRead int
-		if numRead, err = readRunes(t.zzReader.(io.RuneReader),
-			t.zzBuffer[t.zzEndRead+totalRead:]); err != nil && err != io.EOF {
+		if numRead, err = readRunes(t.zzReader.(io.RuneReader), t.zzBuffer[t.zzEndRead+totalRead:]); err != nil && err != io.EOF {
 			return false, err
+		}
+		if numRead == -1 {
+			break
 		}
 		totalRead += numRead
 	}
@@ -440,7 +442,13 @@ func (t *StandardTokenizerImpl) zzRefill() (bool, error) {
 	if totalRead > 0 {
 		t.zzEndRead += totalRead
 		if totalRead == requested { // possibly more input available
-			panic("niy")
+			if isHighSurrogate(t.zzBuffer[t.zzEndRead-1]) {
+				t.zzEndRead--
+				t.zzFinalHighSurrogate = 1
+				if totalRead == 1 {
+					return true, nil
+				}
+			}
 		}
 		return false, nil
 	}
@@ -512,6 +520,10 @@ func (t *StandardTokenizerImpl) zzScanError(errorCode int) {
 	panic(msg)
 }
 
+func isHighSurrogate(r rune) bool {
+	return 0xDC00 <= r && r <= 0xDFFF
+}
+
 /*
 Resumes scanning until the next regular expression is matched, the
 end of input is encountered or an I/O-Error occurs.
@@ -547,13 +559,15 @@ func (t *StandardTokenizerImpl) nextToken() (int, error) {
 			zzAction = t.zzState
 		}
 
+	out:
 		for {
 			if zzCurrentPosL < zzEndReadL {
+				// zzInput = int(zzBufferL[zzCurrentPosL])
 				zzInput = int(zzBufferL[zzCurrentPosL])
 				zzCurrentPosL++
 			} else if t.zzAtEOF {
 				zzInput = YYEOF
-				break
+				break out
 			} else {
 				// store back cached positions
 				t.zzCurrentPos = zzCurrentPosL
@@ -569,7 +583,7 @@ func (t *StandardTokenizerImpl) nextToken() (int, error) {
 				zzEndReadL = t.zzEndRead
 				if eof {
 					zzInput = YYEOF
-					break
+					break out
 				} else {
 					zzInput = int(zzBufferL[zzCurrentPosL])
 					zzCurrentPosL++
@@ -577,7 +591,7 @@ func (t *StandardTokenizerImpl) nextToken() (int, error) {
 			}
 			zzNext := zzTransL[zzRowMapL[t.zzState]+int(zzCMapL[zzInput])]
 			if zzNext == -1 {
-				break
+				break out
 			}
 			t.zzState = zzNext
 
@@ -585,7 +599,7 @@ func (t *StandardTokenizerImpl) nextToken() (int, error) {
 				zzAction = t.zzState
 				zzMarkedPosL = zzCurrentPosL
 				if (zzAttributes & 8) == 8 {
-					break
+					break out
 				}
 			}
 		}
@@ -597,10 +611,12 @@ func (t *StandardTokenizerImpl) nextToken() (int, error) {
 		if zzAction >= 0 {
 			cond = ZZ_ACTION[zzAction]
 		}
+
 		switch cond {
 		case 1, 9, 10, 11, 12, 13, 14, 15, 16:
 			// break so we don't hit fall-through warning:
 			// not numeric, word, ideographic, hiragana, or SE Asian -- ignore it.
+			break
 		case 2:
 			return WORD_TYPE, nil
 		case 3:

@@ -3,7 +3,7 @@ package search
 import (
 	"container/heap"
 	"fmt"
-	"github.com/balzaczyy/golucene/core/index"
+	"github.com/jtejido/golucene/core/index"
 	"math"
 )
 

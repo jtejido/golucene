@@ -2,12 +2,12 @@ package lucene41
 
 import (
 	"fmt"
-	"github.com/balzaczyy/golucene/core/codec"
-	. "github.com/balzaczyy/golucene/core/codec/spi"
-	. "github.com/balzaczyy/golucene/core/index/model"
-	. "github.com/balzaczyy/golucene/core/search/model"
-	"github.com/balzaczyy/golucene/core/store"
-	"github.com/balzaczyy/golucene/core/util"
+	"github.com/jtejido/golucene/core/codec"
+	. "github.com/jtejido/golucene/core/codec/spi"
+	. "github.com/jtejido/golucene/core/index/model"
+	. "github.com/jtejido/golucene/core/search/model"
+	"github.com/jtejido/golucene/core/store"
+	"github.com/jtejido/golucene/core/util"
 )
 
 // Lucene41PostingsReader.java

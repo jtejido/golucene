@@ -2,8 +2,8 @@ package lucene49
 
 import (
 	"fmt"
-	. "github.com/balzaczyy/golucene/core/codec/spi"
-	. "github.com/balzaczyy/golucene/core/index/model"
+	. "github.com/jtejido/golucene/core/codec/spi"
+	. "github.com/jtejido/golucene/core/index/model"
 )
 
 type Lucene49NormsFormat struct {

@@ -1,7 +1,7 @@
 package search
 
 import (
-	"github.com/balzaczyy/golucene/core/index"
+	"github.com/jtejido/golucene/core/index"
 )
 
 type BooleanScorerCollector struct {

@@ -2,9 +2,9 @@ package index
 
 import (
 	"fmt"
-	// "github.com/balzaczyy/golucene/core/analysis/tokenattributes"
-	. "github.com/balzaczyy/golucene/core/index/model"
-	"github.com/balzaczyy/golucene/core/util"
+	// "github.com/jtejido/golucene/core/analysis/tokenattributes"
+	. "github.com/jtejido/golucene/core/index/model"
+	"github.com/jtejido/golucene/core/util"
 	// "sort"
 )
 

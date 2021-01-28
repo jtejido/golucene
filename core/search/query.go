@@ -2,7 +2,7 @@ package search
 
 import (
 	"fmt"
-	"github.com/balzaczyy/golucene/core/index"
+	"github.com/jtejido/golucene/core/index"
 )
 
 // search/Query.java

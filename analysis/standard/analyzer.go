@@ -1,9 +1,9 @@
 package standard
 
 import (
-	. "github.com/balzaczyy/golucene/analysis/core"
-	. "github.com/balzaczyy/golucene/analysis/util"
-	. "github.com/balzaczyy/golucene/core/analysis"
+	. "github.com/jtejido/golucene/analysis/core"
+	. "github.com/jtejido/golucene/analysis/util"
+	. "github.com/jtejido/golucene/core/analysis"
 	"io"
 )
 
@@ -12,8 +12,17 @@ import (
 /* Default maximum allowed token length */
 const DEFAULT_MAX_TOKEN_LENGTH = 255
 
+/* An unmodifiable set containing some common English words that are not usually useful for searching. */
+var STANDARD_STOP_WORDS_SET = map[string]bool{
+	"a": true, "an": true, "and": true, "are": true, "as": true, "at": true, "be": true, "but": true, "by": true,
+	"for": true, "if": true, "in": true, "into": true, "is": true, "it": true,
+	"no": true, "not": true, "of": true, "on": true, "or": true, "such": true,
+	"that": true, "the": true, "their": true, "then": true, "there": true, "these": true,
+	"they": true, "this": true, "to": true, "was": true, "will": true, "with": true,
+}
+
 /* An unmodifiable set containing some common English words that are usually not useful for searching */
-var STOP_WORDS_SET = ENGLISH_STOP_WORDS_SET
+var STD_STOP_WORDS_SET = STANDARD_STOP_WORDS_SET
 
 /*
 Filters StandardTokenizer with StandardFilter, LowerCaseFilter and
@@ -41,16 +50,15 @@ func NewStandardAnalyzerWithStopWords(stopWords map[string]bool) *StandardAnalyz
 	return ans
 }
 
-/* Buils an analyzer with the default stop words (STOP_WORDS_SET). */
 func NewStandardAnalyzer() *StandardAnalyzer {
-	return NewStandardAnalyzerWithStopWords(STOP_WORDS_SET)
+	return NewStandardAnalyzerWithStopWords(STD_STOP_WORDS_SET)
 }
 
 func (a *StandardAnalyzer) CreateComponents(fieldName string, reader io.RuneReader) *TokenStreamComponents {
 	version := a.Version()
-	src := newStandardTokenizer(version, reader)
+	src := NewStandardTokenizer(version, reader)
 	src.maxTokenLength = a.maxTokenLength
-	var tok TokenStream = newStandardFilter(version, src)
+	var tok TokenStream = NewStandardFilter(version, src)
 	tok = NewLowerCaseFilter(version, tok)
 	tok = NewStopFilter(version, tok, a.stopWordSet)
 	ans := NewTokenStreamComponents(src, tok)

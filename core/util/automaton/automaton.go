@@ -2,7 +2,7 @@ package automaton
 
 import (
 	"fmt"
-	"github.com/balzaczyy/golucene/core/util"
+	"github.com/jtejido/golucene/core/util"
 	"sort"
 	"unicode"
 )

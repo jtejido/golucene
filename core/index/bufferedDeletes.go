@@ -3,7 +3,7 @@ package index
 import (
 	// "bytes"
 	"fmt"
-	"github.com/balzaczyy/golucene/core/util"
+	"github.com/jtejido/golucene/core/util"
 	"math"
 	"sync/atomic"
 )

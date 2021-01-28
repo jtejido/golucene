@@ -1,11 +1,11 @@
 package lucene49
 
 import (
-	"github.com/balzaczyy/golucene/core/codec"
-	. "github.com/balzaczyy/golucene/core/index/model"
-	"github.com/balzaczyy/golucene/core/store"
-	"github.com/balzaczyy/golucene/core/util"
-	"github.com/balzaczyy/golucene/core/util/packed"
+	"github.com/jtejido/golucene/core/codec"
+	. "github.com/jtejido/golucene/core/index/model"
+	"github.com/jtejido/golucene/core/store"
+	"github.com/jtejido/golucene/core/util"
+	"github.com/jtejido/golucene/core/util/packed"
 	"math"
 )
 
@@ -16,6 +16,7 @@ const (
 	TABLE_COMPRESSED = 1
 	CONST_COMPRESSED = 2
 	UNCOMPRESSED     = 3
+	BLOCK_SIZE       = 16384
 )
 
 type NormsConsumer struct {
@@ -60,8 +61,10 @@ func (nc *NormsConsumer) AddNumericField(field *FieldInfo,
 	iter func() func() (interface{}, bool)) (err error) {
 
 	if err = nc.meta.WriteVInt(field.Number); err != nil {
+
 		return
 	}
+
 	minValue, maxValue := int64(math.MaxInt64), int64(math.MinInt64)
 	// TODO: more efficient?
 	uniqueValues := newNormMap()
@@ -89,11 +92,13 @@ func (nc *NormsConsumer) AddNumericField(field *FieldInfo,
 
 		count++
 	}
+
 	assert2(count == int64(nc.maxDoc),
 		"illegal norms data for field %v, expected %v values, got %v",
 		field.Name, nc.maxDoc, count)
 
 	if uniqueValues != nil && uniqueValues.size == 1 {
+
 		// 0 bpv
 		if err = nc.meta.WriteByte(CONST_COMPRESSED); err != nil {
 			return
@@ -102,6 +107,7 @@ func (nc *NormsConsumer) AddNumericField(field *FieldInfo,
 			return
 		}
 	} else if uniqueValues != nil {
+
 		// small number of unique values; this is the typical case:
 		// we only use bpv=1,2,4,8
 		format := packed.PackedFormat(packed.PACKED_SINGLE_BLOCK)
@@ -116,6 +122,7 @@ func (nc *NormsConsumer) AddNumericField(field *FieldInfo,
 			if err = store.Stream(nc.meta).WriteByte(UNCOMPRESSED). // uncompressed []byte
 										WriteLong(nc.data.FilePointer()).
 										Close(); err != nil {
+
 				return err
 			}
 			next = iter()
@@ -138,16 +145,20 @@ func (nc *NormsConsumer) AddNumericField(field *FieldInfo,
 											Close(); err != nil {
 				return err
 			}
+
 			if err = nc.data.WriteVInt(packed.VERSION_CURRENT); err != nil {
 				return err
 			}
 
 			decode := uniqueValues.decodeTable()
+
 			// upgrade to power of two sized array
 			size := 1 << uint(bitsPerValue)
+
 			if err = nc.data.WriteVInt(int32(size)); err != nil {
 				return err
 			}
+
 			for _, v := range decode {
 				if err = nc.data.WriteLong(v); err != nil {
 					return err
@@ -172,16 +183,26 @@ func (nc *NormsConsumer) AddNumericField(field *FieldInfo,
 				if !ok {
 					break
 				}
+
 				if err = writer.Add(int64(uniqueValues.ord(nv.(int64)))); err != nil {
 					return err
 				}
 			}
+
 			if err = writer.Finish(); err != nil {
 				return err
 			}
 		}
 	} else {
-		panic("not implemented yet")
+		//   nc.meta.WriteByte(DELTA_COMPRESSED); // delta-compressed
+		// nc.meta.WriteByte(data.FilePointer());
+		// nc.data.WriteVInt(packed.VERSION_CURRENT);
+		// nc.data.WriteVInt(BLOCK_SIZE);
+
+		// writer := new BlockPackedWriter(data, BLOCK_SIZE);
+		// for (Number nv : values) {
+		//   writer.add(nv.longValue());
+		// }
 	}
 	return nil
 }
@@ -263,10 +284,26 @@ func (m *NormMap) add(l int64) bool {
 
 /* Gets the ordinal for a previously added item. */
 func (m *NormMap) ord(l int64) int {
-	panic("niy")
+	if l >= math.MinInt8 && l <= math.MaxInt8 {
+		index := int(l + 128)
+		return int(m.singleByteRange[index])
+	} else {
+		// NPE if something is screwed up
+		return int(m.other[l])
+	}
 }
 
 /* Retrieves the ordinal table for previously added items. */
 func (m *NormMap) decodeTable() []int64 {
-	panic("niy")
+	decode := make([]int64, m.size)
+	for i := 0; i < len(m.singleByteRange); i++ {
+		s := m.singleByteRange[i]
+		if s >= 0 {
+			decode[s] = int64(i) - 128
+		}
+	}
+	for i, entry := range m.other {
+		decode[entry] = int64(i)
+	}
+	return decode
 }

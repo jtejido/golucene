@@ -24,3 +24,4 @@ _testmain.go
 *.sublime-project
 *.sublime-workspace
 *.iml
+test_index/

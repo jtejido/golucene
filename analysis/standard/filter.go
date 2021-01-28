@@ -1,8 +1,8 @@
 package standard
 
 import (
-	. "github.com/balzaczyy/golucene/core/analysis"
-	"github.com/balzaczyy/golucene/core/util"
+	. "github.com/jtejido/golucene/core/analysis"
+	"github.com/jtejido/golucene/core/util"
 )
 
 // standard/StandardFilter.java
@@ -14,7 +14,7 @@ type StandardFilter struct {
 	input        TokenStream
 }
 
-func newStandardFilter(matchVersion util.Version, in TokenStream) *StandardFilter {
+func NewStandardFilter(matchVersion util.Version, in TokenStream) *StandardFilter {
 	return &StandardFilter{
 		TokenFilter:  NewTokenFilter(in),
 		matchVersion: matchVersion,

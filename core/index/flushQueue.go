@@ -76,7 +76,7 @@ func (fq *DocumentsWriterFlushQueue) markTicketFailed(ticket *SegmentFlushTicket
 
 func (fq *DocumentsWriterFlushQueue) hasTickets() bool {
 	n := atomic.LoadInt32(&fq._ticketCount)
-	assertn(n >= 0, "ticketCount should be >= 0 but was: ", n)
+	assertn(n >= 0, "ticketCount should be >= 0 but was: %v", n)
 	return n != 0
 }
 

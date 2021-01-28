@@ -12,6 +12,8 @@ type Version [4]int
 var (
 	// Match settings and bugs in Lucene's 3.1 release.
 	VERSION_31 = Version([4]int{3, 1, 0, 0})
+	// Match settings and bugs in Lucene's 3.6 release.
+	VERSION_36 = Version([4]int{3, 6, 0, 0})
 	// Match settings and bugs in Lucene's 4.0 release.
 	VERSION_4_0 = Version([4]int{4, 0, 0, 0})
 	// Match settings and bugs in Lucene's 4.5 release.

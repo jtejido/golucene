@@ -1,7 +1,7 @@
 package util
 
 import (
-	. "github.com/balzaczyy/golucene/core/analysis"
+	. "github.com/jtejido/golucene/core/analysis"
 )
 
 // util/StopwordAnalyzerBase.java

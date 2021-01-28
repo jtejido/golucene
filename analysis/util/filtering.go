@@ -1,9 +1,9 @@
 package util
 
 import (
-	. "github.com/balzaczyy/golucene/core/analysis"
-	. "github.com/balzaczyy/golucene/core/analysis/tokenattributes"
-	"github.com/balzaczyy/golucene/core/util"
+	. "github.com/jtejido/golucene/core/analysis"
+	. "github.com/jtejido/golucene/core/analysis/tokenattributes"
+	"github.com/jtejido/golucene/core/util"
 )
 
 // util/FilteringTokenFilter.java
