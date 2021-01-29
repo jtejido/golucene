@@ -37,7 +37,7 @@ type CharTermAttributeImpl struct {
 	bytes      *util.BytesRefBuilder
 }
 
-func NewCharTermAttributeImpl() *CharTermAttributeImpl {
+func newCharTermAttributeImpl() *CharTermAttributeImpl {
 	return &CharTermAttributeImpl{
 		termBuffer: make([]rune, util.Oversize(MIN_BUFFER_SIZE, util.NUM_BYTES_CHAR)),
 		bytes:      util.NewBytesRefBuilder(),

@@ -28,7 +28,6 @@ Some common uses for this are:
 	only match when the terms occur with no intervening stop words.
 */
 type PositionIncrementAttribute interface {
-	util.Attribute
 	// Set the position increment. The deafult value is one.
 	SetPositionIncrement(int)
 	// Returns the position increment of this token.

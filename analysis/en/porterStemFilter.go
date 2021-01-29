@@ -2,25 +2,27 @@ package en
 
 import (
 	. "github.com/jtejido/golucene/core/analysis"
-	"github.com/jtejido/golucene/core/analysis/tokenattributes"
+	. "github.com/jtejido/golucene/core/analysis/tokenattributes"
 )
 
 type PorterStemFilter struct {
 	*TokenFilter
 	stemmer     *PorterStemmer
-	termAtt     tokenattributes.CharTermAttribute
-	keywordAttr tokenattributes.KeywordAttribute
+	termAtt     CharTermAttribute
+	keywordAttr KeywordAttribute
 	input       TokenStream
 }
 
 func newPorterStemFilter(in TokenStream) *PorterStemFilter {
-	return &PorterStemFilter{
+	ans := &PorterStemFilter{
 		TokenFilter: NewTokenFilter(in),
 		stemmer:     newPorterStemmer(),
-		termAtt:     tokenattributes.NewCharTermAttributeImpl(),
-		keywordAttr: tokenattributes.NewKeywordAttributeImpl(),
 		input:       in,
 	}
+
+	ans.termAtt = ans.Attributes().Add("CharTermAttribute").(CharTermAttribute)
+	ans.keywordAttr = ans.Attributes().Add("KeywordAttribute").(KeywordAttribute)
+	return ans
 }
 
 func (f *PorterStemFilter) IncrementToken() (bool, error) {

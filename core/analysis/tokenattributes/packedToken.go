@@ -22,7 +22,7 @@ type PackedTokenAttributeImpl struct {
 
 func NewPackedTokenAttribute() util.AttributeImpl {
 	return &PackedTokenAttributeImpl{
-		CharTermAttributeImpl: NewCharTermAttributeImpl(),
+		CharTermAttributeImpl: newCharTermAttributeImpl(),
 		typ:                   DEFAULT_TYPE,
 		positionIncrement:     1,
 		positionLength:        1,

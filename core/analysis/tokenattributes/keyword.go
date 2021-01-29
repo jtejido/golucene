@@ -20,7 +20,7 @@ type KeywordAttributeImpl struct {
 	keyword bool
 }
 
-func NewKeywordAttributeImpl() *KeywordAttributeImpl {
+func newKeywordAttributeImpl() *KeywordAttributeImpl {
 	return new(KeywordAttributeImpl)
 }
 
@@ -39,4 +39,14 @@ func (a *KeywordAttributeImpl) IsKeyword() bool {
 
 func (a *KeywordAttributeImpl) SetKeyword(isKeyword bool) {
 	a.keyword = isKeyword
+}
+
+func (a *KeywordAttributeImpl) Clone() util.AttributeImpl {
+	return &KeywordAttributeImpl{
+		keyword: a.keyword,
+	}
+}
+
+func (a *KeywordAttributeImpl) Interfaces() []string {
+	return []string{"KeywordAttributeImpl"}
 }

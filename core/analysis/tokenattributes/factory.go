@@ -11,14 +11,18 @@ func (fac *DefaultAttributeFactory) Create(name string) util.AttributeImpl {
 	switch name {
 	case "PositionIncrementAttribute":
 		return newPositionIncrementAttributeImpl()
+	case "PositionLengthAttribute":
+		return newPositionLengthAttributeImpl()
 	case "CharTermAttribute":
-		return NewCharTermAttributeImpl()
+		return newCharTermAttributeImpl()
 	case "OffsetAttribute":
 		return newOffsetAttributeImpl()
 	case "TypeAttribute":
 		return newTypeAttributeImpl()
 	case "PayloadAttribute":
 		return newPayloadAttributeImpl()
+	case "KeywordAttribute":
+		return newKeywordAttributeImpl()
 	}
 	panic(fmt.Sprintf("not supported yet: %v", name))
 }

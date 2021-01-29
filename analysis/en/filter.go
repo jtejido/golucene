@@ -2,25 +2,27 @@ package en
 
 import (
 	. "github.com/jtejido/golucene/core/analysis"
-	"github.com/jtejido/golucene/core/analysis/tokenattributes"
+	. "github.com/jtejido/golucene/core/analysis/tokenattributes"
 	"github.com/jtejido/golucene/core/util"
 )
 
 // en/EnglishPossessiveFilter.java
 type EnglishPossessiveFilter struct {
 	*TokenFilter
-	termAtt      tokenattributes.CharTermAttribute
+	termAtt      CharTermAttribute
 	matchVersion util.Version
 	input        TokenStream
 }
 
 func newEnglishPossessiveFilter(matchVersion util.Version, in TokenStream) *EnglishPossessiveFilter {
-	return &EnglishPossessiveFilter{
-		termAtt:      tokenattributes.NewCharTermAttributeImpl(),
+	ans := &EnglishPossessiveFilter{
 		TokenFilter:  NewTokenFilter(in),
 		matchVersion: matchVersion,
 		input:        in,
 	}
+
+	ans.termAtt = ans.Attributes().Add("CharTermAttribute").(CharTermAttribute)
+	return ans
 }
 
 func (f *EnglishPossessiveFilter) IncrementToken() (bool, error) {
