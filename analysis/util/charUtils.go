@@ -29,3 +29,10 @@ func (cu *CharacterUtils) ToLowerCase(buffer []rune) {
 		buffer[i] = unicode.ToLower(v)
 	}
 }
+
+/* Converts each unicode codepoint to lowerCase via unicode.ToUpper(). */
+func (cu *CharacterUtils) ToUpperCase(buffer []rune) {
+	for i, v := range buffer {
+		buffer[i] = unicode.ToUpper(v)
+	}
+}
