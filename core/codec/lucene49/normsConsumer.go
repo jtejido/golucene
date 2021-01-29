@@ -194,15 +194,33 @@ func (nc *NormsConsumer) AddNumericField(field *FieldInfo,
 			}
 		}
 	} else {
-		//   nc.meta.WriteByte(DELTA_COMPRESSED); // delta-compressed
-		// nc.meta.WriteByte(data.FilePointer());
-		// nc.data.WriteVInt(packed.VERSION_CURRENT);
-		// nc.data.WriteVInt(BLOCK_SIZE);
+		if err = store.Stream(nc.meta).WriteByte(DELTA_COMPRESSED). // delta-compressed
+										WriteLong(nc.data.FilePointer()).
+										Close(); err != nil {
 
-		// writer := new BlockPackedWriter(data, BLOCK_SIZE);
-		// for (Number nv : values) {
-		//   writer.add(nv.longValue());
-		// }
+			return err
+		}
+
+		if err = nc.data.WriteVInt(packed.VERSION_CURRENT); err != nil {
+			return err
+		}
+
+		if err = nc.data.WriteVInt(BLOCK_SIZE); err != nil {
+			return err
+		}
+
+		writer := packed.NewBlockPackedWriter(nc.data, BLOCK_SIZE)
+		next = iter()
+		for {
+			nv, ok := next()
+			if !ok {
+				break
+			}
+
+			if err = writer.Add(nv.(int64)); err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }

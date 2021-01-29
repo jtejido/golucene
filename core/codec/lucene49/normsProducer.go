@@ -166,9 +166,40 @@ func (np *NormsProducer) loadNorms(field *FieldInfo) (NumericDocValues, error) {
 	case CONST_COMPRESSED:
 		return func(int) int64 { return entry.offset }, nil
 	case UNCOMPRESSED:
-		panic("not implemented yet")
+		var err error
+		if err = np.data.Seek(entry.offset); err == nil {
+			bytes := make([]byte, np.maxDoc)
+			if err = np.data.ReadBytes(bytes[:len(bytes)]); err == nil {
+				atomic.AddInt64(&np.ramBytesUsed, util.SizeOf(bytes))
+
+				return func(docID int) int64 {
+					return int64(bytes[docID])
+				}, nil
+			}
+		}
+		if err != nil {
+			return nil, err
+		}
 	case DELTA_COMPRESSED:
-		panic("not implemented yet")
+		var err error
+		if err = np.data.Seek(entry.offset); err == nil {
+			var packedIntsVersion int32
+			if packedIntsVersion, err = np.data.ReadVInt(); err == nil {
+				var blockSize int
+				if blockSize, err = int32ToInt(np.data.ReadVInt()); err == nil {
+					var reader packed.BlockPackedReader
+					if reader, err = packed.NewBlockPackedReader(np.data, packedIntsVersion, blockSize, int64(np.maxDoc), false); err == nil {
+						atomic.AddInt64(&np.ramBytesUsed, reader.RamBytesUsed())
+						return func(docId int) int64 {
+							return reader.Get(int64(docId))
+						}, nil
+					}
+				}
+			}
+		}
+		if err != nil {
+			return nil, err
+		}
 	case TABLE_COMPRESSED:
 		var err error
 		if err = np.data.Seek(entry.offset); err == nil {

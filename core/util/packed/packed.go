@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/jtejido/golucene/core/codec"
+	"github.com/jtejido/golucene/core/store"
 	"github.com/jtejido/golucene/core/util"
 	"math"
 )
@@ -616,6 +617,58 @@ func ReaderNoHeader(in DataInput, format PackedFormat, version, valueCount int32
 			}
 		}
 		return newPacked64FromInput(version, in, valueCount, bitsPerValue)
+	default:
+		panic(fmt.Sprintf("Unknown Writer format: %v", format))
+	}
+}
+
+type directPackedReaderPackedImpl struct {
+	*DirectPackedReader
+	getter func(int) int64
+}
+
+func newDirectPackedReaderPacked(bitsPerValue uint32, valueCount int, in store.IndexInput) (*directPackedReaderPackedImpl, error) {
+	var err error
+	a := new(directPackedReaderPackedImpl)
+	a.DirectPackedReader, err = newDirectPackedReader(bitsPerValue, valueCount, in)
+	return a, err
+}
+
+func (a *directPackedReaderPackedImpl) Get(index int) int64 {
+	return a.getter(index)
+}
+
+func DirectReaderNoHeader(in store.IndexInput, format PackedFormat, version, valueCount int32,
+	bitsPerValue uint32) (r PackedIntsReader, err error) {
+	CheckVersion(version)
+
+	switch format {
+	case PACKED:
+		byteCount := format.ByteCount(version, valueCount, bitsPerValue)
+		if byteCount != format.ByteCount(VERSION_CURRENT, valueCount, bitsPerValue) {
+			assert(version == PACKED_VERSION_START)
+			endPointer := in.FilePointer() + byteCount
+			// Some consumers of direct readers assume that reading the last value
+			// will make the underlying IndexInput go to the end of the packed
+			// stream, but this is not true because packed ints storage used to be
+			// long-aligned and is now byte-aligned, hence this additional
+			// condition when reading the last value
+			a, err := newDirectPackedReaderPacked(bitsPerValue, int(valueCount), in)
+			a.getter = func(index int) int64 {
+				result := a.DirectPackedReader.Get(index)
+				if index == a.valueCount-1 {
+					if err = in.Seek(endPointer); err != nil {
+						panic(err.Error())
+					}
+				}
+				return result
+			}
+			return a, err
+		} else {
+			return newDirectPackedReader(bitsPerValue, int(valueCount), in)
+		}
+	case PACKED_SINGLE_BLOCK:
+		return newDirectPacked64SingleBlockReader(bitsPerValue, int(valueCount), in)
 	default:
 		panic(fmt.Sprintf("Unknown Writer format: %v", format))
 	}

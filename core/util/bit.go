@@ -95,3 +95,7 @@ func ZigZagEncodeLong(l int64) int64 {
 func ZigZagDecodeLong(l int64) int64 {
 	return int64(uint64(l)>>1) ^ -(l & 1)
 }
+
+func ZigZagEncodeInt(i int) int {
+	return (i >> 31) ^ (i << 1)
+}
