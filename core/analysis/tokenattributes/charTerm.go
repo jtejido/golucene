@@ -16,6 +16,7 @@ type CharTermAttribute interface {
 	//
 	// NOTE: the returned buffer may be larger than the valid Length().
 	Buffer() []rune
+	ResizeBuffer(newSize int) []rune
 	Length() int
 	SetLength(l int)
 	// Appends teh specified string to this character sequence.
@@ -54,6 +55,16 @@ func (a *CharTermAttributeImpl) CopyBuffer(buffer []rune) {
 }
 
 func (a *CharTermAttributeImpl) Buffer() []rune {
+	return a.termBuffer
+}
+
+func (a *CharTermAttributeImpl) ResizeBuffer(newSize int) []rune {
+	if len(a.termBuffer) < newSize {
+		// Not big enough; create a new array with slight
+		// over allocation and preserve content
+		a.termBuffer = append(a.termBuffer, make([]rune, util.Oversize(newSize, util.NUM_BYTES_CHAR))...)
+	}
+
 	return a.termBuffer
 }
 

@@ -143,6 +143,7 @@ func (a *AnalyzerImpl) Version() util.Version {
 }
 
 type myTokenizer interface {
+	TokenStream
 	SetReader(io.RuneReader) error
 }
 
@@ -167,6 +168,14 @@ type TokenStreamComponents struct {
 
 func NewTokenStreamComponents(source myTokenizer, result TokenStream) *TokenStreamComponents {
 	ans := &TokenStreamComponents{source: source, sink: result}
+	ans.SetReader = func(reader io.RuneReader) error {
+		return ans.source.SetReader(reader)
+	}
+	return ans
+}
+
+func NewTokenStreamComponentsUnfiltered(source myTokenizer) *TokenStreamComponents {
+	ans := &TokenStreamComponents{source: source, sink: source}
 	ans.SetReader = func(reader io.RuneReader) error {
 		return ans.source.SetReader(reader)
 	}
