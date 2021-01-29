@@ -3,7 +3,7 @@ golucene
 
 A [Go](http://golang.org) port of [Apache Lucene](http://lucene.apache.org). Check out the online demo [here](http://hamlet.zhouyiyan.cn/)!
 
-Continuing on to implementing all of v4.10.4 with additional experimentation on different ranking models.
+Continuing where balzaczyy left off and implement all of v4.10.4 with additional experimentation on different ranking models.
 
 This is primarily for my personal use case only, DO NOT USE IN PRODUCTION (I just needed the search capabilities of Lucene in native Go and some alternatives found elsewhere just doesn't cut it for me). 
 
