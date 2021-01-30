@@ -508,3 +508,7 @@ func (de *blockDocsEnum) Advance(target int) (int, error) {
 		return de.NextDoc()
 	}
 }
+
+func (de *blockDocsEnum) Cost() int64 {
+	return int64(de.docFreq)
+}

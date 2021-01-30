@@ -234,7 +234,7 @@ func (s *FakeScorer) DocId() int               { return s.doc }
 func (s *FakeScorer) Freq() (int, error)       { return s.freq, nil }
 func (s *FakeScorer) NextDoc() (int, error)    { panic("FakeScorer doesn't support nextDoc()") }
 func (s *FakeScorer) Score() (float32, error)  { return s.score, nil }
+func (s *FakeScorer) Cost() int64              { return 1 }
 
-// func (s *FakeScorer) Cost() int64             { return 1 }
 // func (s *FakeScorer) Weight() Weight          { panic("not supported") }
 // func (s *FakeScorer) Children() []ChildScorer { panic("not supported") }

@@ -37,6 +37,7 @@ func (q *BooleanQuery) AddClause(clause *BooleanClause) {
 }
 
 type BooleanWeight struct {
+	*WeightImpl
 	owner        *BooleanQuery
 	similarity   Similarity
 	weights      []Weight
@@ -62,6 +63,7 @@ func newBooleanWeight(owner *BooleanQuery,
 			w.maxCoord++
 		}
 	}
+	w.WeightImpl = newWeightImpl(w)
 	return w, nil
 }
 
@@ -117,7 +119,7 @@ func (w *BooleanWeight) BulkScorer(context *index.AtomicReaderContext,
 				return nil, nil
 			}
 		} else if c.IsRequired() {
-			panic("not implemented yet")
+			return w.WeightImpl.BulkScorer(context, scoreDocsInOrder, acceptDocs)
 		} else if c.IsProhibited() {
 			prohibited = append(prohibited, subScorer)
 		} else {
@@ -126,6 +128,128 @@ func (w *BooleanWeight) BulkScorer(context *index.AtomicReaderContext,
 	}
 
 	return newBooleanScorer(w, w.disableCoord, w.owner.minNrShouldMatch, optional, prohibited, w.maxCoord), nil
+}
+
+func (w *BooleanWeight) Scorer(context *index.AtomicReaderContext, acceptDocs util.Bits) (Scorer, error) {
+	// initially the user provided value,
+	// but if minNrShouldMatch == optional.size(),
+	// we will optimize and move these to required, making this 0
+	minShouldMatch := w.owner.minNrShouldMatch
+
+	required := make([]Scorer, 0)
+	prohibited := make([]Scorer, 0)
+	optional := make([]Scorer, 0)
+	for i := 0; i < len(w.weights); i++ {
+		c := w.owner.clauses[i]
+		subScorer, err := w.Scorer(context, acceptDocs)
+		if err != nil {
+			return nil, err
+		}
+
+		if subScorer == nil {
+			if c.IsRequired() {
+				return nil, nil
+			}
+		} else if c.IsRequired() {
+			required = append(required, subScorer)
+		} else if c.IsRequired() {
+			prohibited = append(prohibited, subScorer)
+		} else {
+			optional = append(optional, subScorer)
+		}
+	}
+
+	// scorer simplifications:
+
+	if len(optional) == minShouldMatch {
+		// any optional clauses are in fact required
+
+		required = append(required, optional...)
+		optional := make([]Scorer, 0)
+		minShouldMatch = 0
+	}
+
+	if len(required) == 0 && len(optional) == 0 {
+		// no required and optional clauses.
+		return nil, nil
+	} else if len(optional) < minShouldMatch {
+		// either >1 req scorer, or there are 0 req scorers and at least 1
+		// optional scorer. Therefore if there are not enough optional scorers
+		// no documents will be matched by the query
+		return nil, nil
+	}
+
+	// three cases: conjunction, disjunction, or mix
+
+	// pure conjunction
+	if len(optional) == 0 {
+		var s Scorer
+		var err error
+		if s, err = w.req(required, w.disableCoord); err == nil {
+			return w.excl(s, prohibited)
+		}
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// pure disjunction
+	if len(required) == 0 {
+		var s Scorer
+		var err error
+		if s, err = w.opt(optional, minShouldMatch, w.disableCoord); err == nil {
+			return w.excl(s, prohibited)
+		}
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// conjunction-disjunction mix:
+	// we create the required and optional pieces with coord disabled, and then
+	// combine the two: if minNrShouldMatch > 0, then its a conjunction: because the
+	// optional side must match. otherwise its required + optional, factoring the
+	// number of optional terms into the coord calculation
+	var err error
+	var req, opt, tmp Scorer
+
+	tmp, err = w.req(required, true)
+	if err != nil {
+		return nil, err
+	}
+	req, err = w.excl(tmp, prohibited)
+	if err != nil {
+		return nil, err
+	}
+	opt, err = w.opt(optional, minShouldMatch, true)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: clean this up: its horrible
+	if w.disableCoord {
+		if minShouldMatch > 0 {
+			return newConjunctionScorerWithCoord(w, []Scorer{req, opt}, 1)
+		} else {
+			return newReqOptSumScorer(req, opt)
+		}
+	} else if len(optional) == 1 {
+		if minShouldMatch > 0 {
+			return newConjunctionScorerWithCoord(w, []Scorer{req, opt}, w.coord(len(required)+1, w.maxCoord))
+		} else {
+			coordReq := w.coord(len(required), w.maxCoord)
+			coordBoth := w.coord(len(required)+1, w.maxCoord)
+			return newBooleanTopLevelScorers.ReqSingleOptScorer(req, opt, coordReq, coordBoth)
+		}
+	} else {
+		if minShouldMatch > 0 {
+			return newBooleanTopLevelScorers.CoordinatingConjunctionScorer(w, w.coords(), req, len(required), opt)
+		} else {
+			return newBooleanTopLevelScorers.ReqMultiOptScorer(req, opt, len(required), w.coords())
+		}
+	}
 }
 
 func (w *BooleanWeight) IsScoresDocsOutOfOrder() bool {
@@ -149,6 +273,72 @@ func (w *BooleanWeight) IsScoresDocsOutOfOrder() bool {
 
 	// scorer() will return an out-of-order scorer if requested.
 	return true
+}
+
+func (w *BooleanWeight) req(required []Scorer, disableCoord bool) (Scorer, error) {
+	if len(required) == 1 {
+		req := required[0]
+		if !w.disableCoord && w.maxCoord > 1 {
+			return newBoostedScorer(req, w.coord(1, w.maxCoord))
+		} else {
+			return req, nil
+		}
+	} else {
+		v := float32(1)
+		if !w.disableCoord {
+			v = w.coord(len(required), w.maxCoord)
+		}
+		return newConjunctionScorerWithCoord(w, required, v)
+	}
+}
+
+func (w *BooleanWeight) excl(main Scorer, prohibited []Scorer) (Scorer, error) {
+	if len(prohibited) == 0 {
+		return main, nil
+	} else if len(prohibited) == 1 {
+		return newReqExclScorer(main, prohibited[0])
+	} else {
+		coords := make([]float32, len(prohibited)+1)
+		for i := 0; i < len(coords); i++ {
+			coords[i] = 1.
+		}
+		return newReqExclScorer(main, newDisjunctionSumScorer(w, prohibited, coords))
+	}
+}
+
+func (w *BooleanWeight) opt(optional []Scorer, minShouldMatch int, disableCoord bool) (Scorer, error) {
+	if len(optional) == 1 {
+		opt := optional[0]
+		if !w.disableCoord && w.maxCoord > 1 {
+			return newBoostedScorer(opt, w.coord(1, w.maxCoord))
+		} else {
+			return opt, nil
+		}
+	} else {
+		var coords []float32
+		if w.disableCoord {
+			coords = make([]float32, len(optional)+1)
+			for i := 0; i < len(coords); i++ {
+				coords[i] = 1.
+			}
+		} else {
+			coords = w.coords()
+		}
+		if minShouldMatch > 1 {
+			return newMinShouldMatchSumScorer(w, optional, minShouldMatch, coords)
+		} else {
+			return newDisjunctionSumScorer(w, optional, coords)
+		}
+	}
+}
+
+func (w *BooleanWeight) coords() []float32 {
+	coords := make([]float32, w.maxCoord+1)
+	coords[0] = 0
+	for i := 1; i < len(coords); i++ {
+		coords[i] = w.coord(i, w.maxCoord)
+	}
+	return coords
 }
 
 func (q *BooleanQuery) CreateWeight(searcher *IndexSearcher) (Weight, error) {

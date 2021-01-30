@@ -234,12 +234,20 @@ func (tm *TokenManager) jjMoveNfa_2(startState, curPos int) int {
 					case 79:
 						panic("niy")
 					case 65:
-						panic("niy")
+						tm.jjstateSet[tm.jjnewStateCnt] = 2
+						tm.jjnewStateCnt++
 					}
 				case 1:
-					panic("niy")
+					if tm.curChar == 68 && kind > 8 {
+						kind = 8
+					}
+					break
 				case 2:
-					panic("niy")
+					if tm.curChar == 78 {
+						tm.jjstateSet[tm.jjnewStateCnt] = 1
+						tm.jjnewStateCnt++
+					}
+					break
 				case 3:
 					panic("niy")
 				case 6:

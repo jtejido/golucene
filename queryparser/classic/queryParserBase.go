@@ -66,11 +66,17 @@ func (qp *QueryParserBase) addClause(clauses []*search.BooleanClause,
 	// If this term is introduced by AND, make the preceding term required,
 	// unless it's already prohibited
 	if len(clauses) > 0 && conj == CONJ_AND {
-		panic("not implemented yet")
+		c := clauses[len(clauses)-1]
+		if !c.IsProhibited() {
+			c.SetOccur(search.MUST)
+		}
 	}
 
 	if len(clauses) > 0 && qp.operator == OP_AND && conj == CONJ_OR {
-		panic("not implemented yet")
+		c := clauses[len(clauses)-1]
+		if !c.IsProhibited() {
+			c.SetOccur(search.SHOULD)
+		}
 	}
 
 	// We might have been passed an empty query; the term might have been
@@ -88,14 +94,20 @@ func (qp *QueryParserBase) addClause(clauses []*search.BooleanClause,
 			required = true
 		}
 	} else {
-		panic("not implemented yet")
+		// We set PROHIBITED if we're introduced by NOT or -; We set REQUIRED
+		// if not PROHIBITED and not introduced by OR
+		prohibited = (mods == MOD_NOT)
+		required = (!prohibited && conj != CONJ_OR)
 	}
-	if required {
-		panic("not implemented yet")
-	} else if !prohibited {
+
+	if required && !prohibited {
+		return append(clauses, qp.newBooleanClause(q, search.MUST))
+	} else if !required && !prohibited {
 		return append(clauses, qp.newBooleanClause(q, search.SHOULD))
+	} else if !required && prohibited {
+		return append(clauses, qp.newBooleanClause(q, search.MUST_NOT))
 	} else {
-		panic("not implemented yet")
+		panic("Clause cannot be both required and prohibited")
 	}
 }
 

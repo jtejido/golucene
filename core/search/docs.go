@@ -12,6 +12,7 @@ import (
 type Scorer interface {
 	DocsEnum
 	IScorer
+	Weight() Weight
 	// ScoreAndCollect(c Collector) error
 }
 
@@ -35,6 +36,10 @@ type abstractScorer struct {
 
 func newScorer(spi ScorerSPI, w Weight) *abstractScorer {
 	return &abstractScorer{spi: spi, weight: w}
+}
+
+func (s *abstractScorer) Weight() Weight {
+	return s.weight
 }
 
 /** Scores and collects all matching documents.

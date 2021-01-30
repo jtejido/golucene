@@ -39,3 +39,11 @@ func (c *BooleanClause) IsProhibited() bool {
 func (c *BooleanClause) IsRequired() bool {
 	return c.occur == MUST
 }
+
+func (c *BooleanClause) SetOccur(occur Occur) {
+	c.occur = occur
+}
+
+func (c *BooleanClause) Occur() Occur {
+	return c.occur
+}

@@ -230,3 +230,7 @@ func (ts *TermScorer) Advance(target int) (int, error) {
 func (ts *TermScorer) String() string {
 	return fmt.Sprintf("scorer(%v)", ts.weight)
 }
+
+func (ts *TermScorer) Cost() int64 {
+	return ts.docsEnum.Cost()
+}

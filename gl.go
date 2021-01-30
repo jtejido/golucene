@@ -58,7 +58,7 @@ func main() {
 
 	var q search.Query
 	var err error
-	if q, err = parser.Parse("test 2"); err != nil {
+	if q, err = parser.Parse("test AND 2"); err != nil {
 		fmt.Printf("error: %s", err.Error())
 	}
 

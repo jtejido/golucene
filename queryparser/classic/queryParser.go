@@ -55,7 +55,23 @@ func (qp *QueryParser) conjunction() (int, error) {
 	}
 	switch qp.jj_ntk {
 	case AND, OR:
-		panic("niy")
+		if qp.jj_ntk == -1 {
+			qp.get_jj_ntk()
+		}
+		switch qp.jj_ntk {
+		case AND:
+			qp.jj_consume_token(AND)
+			ret = CONJ_AND
+			break
+		case OR:
+			qp.jj_consume_token(OR)
+			ret = CONJ_OR
+			break
+		default:
+			qp.jj_la1[0] = qp.jj_gen
+			qp.jj_consume_token(-1)
+			panic("error parsing")
+		}
 	default:
 		qp.jj_la1[1] = qp.jj_gen
 	}

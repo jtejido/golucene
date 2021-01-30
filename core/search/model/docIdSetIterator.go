@@ -70,5 +70,5 @@ type DocIdSetIterator interface {
 	 * might match, but may be a rough heuristic, hardcoded value, or otherwise
 	 * completely inaccurate.
 	 */
-	// Cost() int64
+	Cost() int64
 }
