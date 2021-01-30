@@ -104,7 +104,7 @@ func (w *BooleanWeight) BulkScorer(context *index.AtomicReaderContext,
 	scoreDocsInOrder bool, acceptDocs util.Bits) (BulkScorer, error) {
 
 	if scoreDocsInOrder || w.owner.minNrShouldMatch > 1 {
-		panic("not implemented yet")
+		return w.WeightImpl.BulkScorer(context, scoreDocsInOrder, acceptDocs)
 	}
 
 	var prohibited, optional []BulkScorer
@@ -139,9 +139,9 @@ func (w *BooleanWeight) Scorer(context *index.AtomicReaderContext, acceptDocs ut
 	required := make([]Scorer, 0)
 	prohibited := make([]Scorer, 0)
 	optional := make([]Scorer, 0)
-	for i := 0; i < len(w.weights); i++ {
+	for i, weight := range w.weights {
 		c := w.owner.clauses[i]
-		subScorer, err := w.Scorer(context, acceptDocs)
+		subScorer, err := weight.Scorer(context, acceptDocs)
 		if err != nil {
 			return nil, err
 		}
@@ -163,9 +163,8 @@ func (w *BooleanWeight) Scorer(context *index.AtomicReaderContext, acceptDocs ut
 
 	if len(optional) == minShouldMatch {
 		// any optional clauses are in fact required
-
 		required = append(required, optional...)
-		optional := make([]Scorer, 0)
+		optional = make([]Scorer, 0)
 		minShouldMatch = 0
 	}
 
@@ -241,13 +240,13 @@ func (w *BooleanWeight) Scorer(context *index.AtomicReaderContext, acceptDocs ut
 		} else {
 			coordReq := w.coord(len(required), w.maxCoord)
 			coordBoth := w.coord(len(required)+1, w.maxCoord)
-			return newBooleanTopLevelScorers.ReqSingleOptScorer(req, opt, coordReq, coordBoth)
+			return newReqSingleOptScorer(req, opt, coordReq, coordBoth)
 		}
 	} else {
 		if minShouldMatch > 0 {
-			return newBooleanTopLevelScorers.CoordinatingConjunctionScorer(w, w.coords(), req, len(required), opt)
+			return newCoordinatingConjunctionScorer(w, w.coords(), req, len(required), opt)
 		} else {
-			return newBooleanTopLevelScorers.ReqMultiOptScorer(req, opt, len(required), w.coords())
+			return newReqMultiOptScorer(req, opt, len(required), w.coords())
 		}
 	}
 }
@@ -302,13 +301,18 @@ func (w *BooleanWeight) excl(main Scorer, prohibited []Scorer) (Scorer, error) {
 		for i := 0; i < len(coords); i++ {
 			coords[i] = 1.
 		}
-		return newReqExclScorer(main, newDisjunctionSumScorer(w, prohibited, coords))
+		dss, err := newDisjunctionSumScorer(w, prohibited, coords)
+		if err != nil {
+			return nil, err
+		}
+		return newReqExclScorer(main, dss)
 	}
 }
 
 func (w *BooleanWeight) opt(optional []Scorer, minShouldMatch int, disableCoord bool) (Scorer, error) {
 	if len(optional) == 1 {
 		opt := optional[0]
+		println(opt.Weight())
 		if !w.disableCoord && w.maxCoord > 1 {
 			return newBoostedScorer(opt, w.coord(1, w.maxCoord))
 		} else {

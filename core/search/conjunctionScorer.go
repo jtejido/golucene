@@ -4,6 +4,7 @@ import (
 	"github.com/jtejido/golucene/core/util"
 )
 
+/** Scorer for conjunctions, sets of queries, all of which are required. */
 type ConjunctionScorer struct {
 	*abstractScorer
 	lastDoc      int

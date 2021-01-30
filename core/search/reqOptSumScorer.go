@@ -4,6 +4,8 @@ import (
 	. "github.com/jtejido/golucene/core/search/model"
 )
 
+// A Scorer for queries with a required part and an optional part.
+// Delays skipTo() on the optional part until a score() is needed.
 type ReqOptSumScorer struct {
 	*abstractScorer
 	reqScorer, optScorer Scorer

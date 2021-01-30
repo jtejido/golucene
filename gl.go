@@ -17,7 +17,7 @@ import (
 func main() {
 	util.SetDefaultInfoStream(util.NewPrintStreamInfoStream(os.Stdout))
 	index.DefaultSimilarity = func() index.Similarity {
-		return similarities.NewDefaultXSqrAMSimilarity()
+		return similarities.NewDefaultSimilarity()
 	}
 
 	directory, _ := store.OpenFSDirectory("test_index")
@@ -30,7 +30,7 @@ func main() {
 	writer.AddDocument(d.Fields())
 
 	d2 := document.NewDocument()
-	d2.Add(document.NewTextFieldFromString("body", "test 2 Lorem ipsum dolor sit amet, consectetur adipiscing elit.Sed vitae ante quis sem iaculis hendrerit.Interdum et malesuada fames ac ante ipsum primis in faucibus.Donec at luctus leo.Aenean eget tempor sem.Aliquam fermentum eleifend pretium.Sed fringilla, velit id mattis mattis, nisi elit consectetur sapien, id suscipit massa sem vitae justo", document.STORE_YES))
+	d2.Add(document.NewTextFieldFromString("body", "test 2 1 Lorem ipsum dolor sit amet, consectetur adipiscing elit.Sed vitae ante quis sem iaculis hendrerit.Interdum et malesuada fames ac ante ipsum primis in faucibus.Donec at luctus leo.Aenean eget tempor sem.Aliquam fermentum eleifend pretium.Sed fringilla, velit id mattis mattis, nisi elit consectetur sapien, id suscipit massa sem vitae justo", document.STORE_YES))
 	writer.AddDocument(d2.Fields())
 
 	d3 := document.NewDocument()
@@ -58,7 +58,7 @@ func main() {
 
 	var q search.Query
 	var err error
-	if q, err = parser.Parse("test AND 2"); err != nil {
+	if q, err = parser.Parse("test OR 2 AND 1 AND Lorem"); err != nil {
 		fmt.Printf("error: %s", err.Error())
 	}
 

@@ -64,6 +64,7 @@ type Weight interface {
 	 * the <code>Scorer</code> scores documents in-order.
 	 */
 	IsScoresDocsOutOfOrder() bool // usually false
+	Scorer(*index.AtomicReaderContext, util.Bits) (Scorer, error)
 }
 
 type WeightImplSPI interface {

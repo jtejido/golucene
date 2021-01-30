@@ -9,6 +9,7 @@ func newFilterScorer(in Scorer) *FilterScorer {
 	ans := &FilterScorer{
 		in: in,
 	}
+
 	ans.abstractScorer = newScorer(ans, in.Weight())
 	return ans
 }
