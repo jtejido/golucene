@@ -203,7 +203,15 @@ func (qp *QueryParserBase) discardEscapeChar(input string) (string, error) {
 		if codePointMultiplier > 0 {
 			panic("not implemented yet")
 		} else if lastCharWasEscapeChar {
-			panic("not implemented yet")
+			if curChar == 'u' {
+				// found an escaped unicode character
+				codePointMultiplier = 16 * 16 * 16
+			} else {
+				// this character was escaped
+				output[length] = curChar
+				length++
+			}
+			lastCharWasEscapeChar = false
 		} else {
 			if curChar == '\\' {
 				lastCharWasEscapeChar = true

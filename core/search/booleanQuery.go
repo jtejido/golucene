@@ -312,7 +312,6 @@ func (w *BooleanWeight) excl(main Scorer, prohibited []Scorer) (Scorer, error) {
 func (w *BooleanWeight) opt(optional []Scorer, minShouldMatch int, disableCoord bool) (Scorer, error) {
 	if len(optional) == 1 {
 		opt := optional[0]
-		println(opt.Weight())
 		if !w.disableCoord && w.maxCoord > 1 {
 			return newBoostedScorer(opt, w.coord(1, w.maxCoord))
 		} else {

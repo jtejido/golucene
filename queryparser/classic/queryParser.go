@@ -70,7 +70,7 @@ func (qp *QueryParser) conjunction() (int, error) {
 		default:
 			qp.jj_la1[0] = qp.jj_gen
 			qp.jj_consume_token(-1)
-			panic("error parsing")
+			return 0, errors.New("parse error")
 		}
 	default:
 		qp.jj_la1[1] = qp.jj_gen
@@ -149,8 +149,33 @@ func (qp *QueryParser) Query(field string) (q search.Query, err error) {
 }
 
 func (qp *QueryParser) clause(field string) (q search.Query, err error) {
+	var fieldToken *Token = nil
 	if qp.jj_2_1(2) {
-		panic("not implemented yet")
+		if qp.jj_ntk == -1 {
+			qp.get_jj_ntk()
+		}
+		switch qp.jj_ntk {
+		case TERM:
+			fieldToken, err = qp.jj_consume_token(TERM)
+			if err != nil {
+				return nil, err
+			}
+			qp.jj_consume_token(COLON)
+			field, err = qp.discardEscapeChar(fieldToken.image)
+			if err != nil {
+				return nil, err
+			}
+			break
+		case STAR:
+			qp.jj_consume_token(STAR)
+			qp.jj_consume_token(COLON)
+			field = "*"
+			break
+		default:
+			qp.jj_la1[5] = qp.jj_gen
+			qp.jj_consume_token(-1)
+			return nil, errors.New("parse error")
+		}
 	}
 	if qp.jj_ntk == -1 {
 		qp.get_jj_ntk()
@@ -163,7 +188,27 @@ func (qp *QueryParser) clause(field string) (q search.Query, err error) {
 			return nil, err
 		}
 	case LPAREN:
-		panic("not implemented yet")
+		qp.jj_consume_token(LPAREN)
+		q, err = qp.Query(field)
+		if err != nil {
+			return nil, err
+		}
+		qp.jj_consume_token(RPAREN)
+		if qp.jj_ntk == -1 {
+			qp.get_jj_ntk()
+		}
+		switch qp.jj_ntk {
+		case CARAT:
+			qp.jj_consume_token(CARAT)
+			boost, err = qp.jj_consume_token(NUMBER)
+			if err != nil {
+				return nil, err
+			}
+			break
+		default:
+			qp.jj_la1[6] = qp.jj_gen
+
+		}
 	default:
 		qp.jj_la1[7] = qp.jj_gen
 		if _, err = qp.jj_consume_token(-1); err != nil {

@@ -338,7 +338,6 @@ func (dwpt *DocumentsWriterPerThread) flush() (fs *FlushedSegment, err error) {
 			dwpt.abort(dwpt.filesToDelete)
 		}
 	}()
-	println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 	err = dwpt.consumer.flush(flushState)
 
 	if err != nil {
