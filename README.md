@@ -1,7 +1,7 @@
 golucene
 ========
 
-A [Go](http://golang.org) port of [Apache Lucene](http://lucene.apache.org). Check out the online demo [here](http://hamlet.zhouyiyan.cn/)!
+A [Go](http://golang.org) port of [Apache Lucene](http://lucene.apache.org).
 
 Continuing where balzaczyy left off and implement all of v4.10.4 with additional experimentation on different ranking models.
 
@@ -9,7 +9,7 @@ This is primarily for my personal use case only, DO NOT USE IN PRODUCTION (I jus
 
 
 **TO-DO:**
-- Query Expansion (Rocchio, Genetic Algo, LDA approaches, etc).
+- Query Expansion.
 - Finish some more unimplemented bits found here and there.
 
 
@@ -41,15 +41,6 @@ Installation
 
 Usage
 -----
-
-Using GoLucene is similar to using Lucene Java. Firstly, index need
-to be built first. Then, create an query and do the search against
-the index.
-
-Note that the current GoLucene is rather basic and limited in feature.
-Only default functions are supported, like term frequency based
-weight calculation, filesystem directory, boolean query, etc. For
-further features, please raise requests.
 
 A detailed example can be found [here](gl.go).
 
