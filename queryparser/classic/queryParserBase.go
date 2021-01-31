@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/jtejido/golucene/core/analysis"
 	"github.com/jtejido/golucene/core/search"
+	"strconv"
 	"strings"
 )
 
@@ -28,9 +29,9 @@ type QueryParserBaseSPI interface {
 type QueryParserBase struct {
 	*QueryBuilder
 
-	spi QueryParserBaseSPI
-
-	operator Operator
+	spi                    QueryParserBaseSPI
+	lowercaseExpandedTerms bool
+	operator               Operator
 
 	field      string
 	phraseSlop int
@@ -40,9 +41,10 @@ type QueryParserBase struct {
 
 func newQueryParserBase(spi QueryParserBaseSPI) *QueryParserBase {
 	return &QueryParserBase{
-		QueryBuilder: newQueryBuilder(),
-		spi:          spi,
-		operator:     OP_OR,
+		QueryBuilder:           newQueryBuilder(),
+		spi:                    spi,
+		operator:               OP_OR,
+		lowercaseExpandedTerms: true,
 	}
 }
 
@@ -129,6 +131,23 @@ func (qp *QueryParserBase) newFieldQuery(analyzer analysis.Analyzer,
 		quoted || qp.autoGeneratePhraseQueries, qp.phraseSlop)
 }
 
+func (qp *QueryParserBase) baseFieldQuery(field, queryText string, slop int) search.Query {
+	query := qp.fieldQuery(field, queryText, true)
+
+	// if (query instanceof PhraseQuery) {
+	//   ((PhraseQuery) query).setSlop(slop);
+	// }
+	// if (query instanceof MultiPhraseQuery) {
+	//   ((MultiPhraseQuery) query).setSlop(slop);
+	// }
+
+	return query
+}
+
+func (qp *QueryParserBase) rangeQuery(field, part1, part2 string, startInclusive, endInclusive bool) search.Query {
+	panic("niy")
+}
+
 // L539
 
 func (qp *QueryParserBase) newBooleanClause(q search.Query, occur search.Occur) *search.BooleanClause {
@@ -177,6 +196,24 @@ func (qp *QueryParserBase) handleBareTokenQuery(qField string,
 	} else {
 		return qp.fieldQuery(qField, termImage, false), nil
 	}
+}
+
+func (qp *QueryParserBase) handleQuotedTerm(qfield string, term, fuzzySlop *Token) (q search.Query, err error) {
+	s := qp.phraseSlop // default
+	if fuzzySlop != nil {
+		var f float64
+		if f, err = strconv.ParseFloat(fuzzySlop.image[1:], 64); err != nil {
+			return nil, err
+		}
+
+		s = int(f)
+	}
+
+	var termImage string
+	if termImage, err = qp.discardEscapeChar(term.image[1:]); err != nil {
+		return nil, err
+	}
+	return qp.baseFieldQuery(qfield, termImage, s), nil
 }
 
 // L876

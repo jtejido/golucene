@@ -552,8 +552,19 @@ func (e *SegmentTermsEnum) DocsByFlags(skipDocs util.Bits, reuse DocsEnum, flags
 	return e.fr.parent.postingsReader.Docs(e.fr.fieldInfo, e.currentFrame.state, skipDocs, reuse, flags)
 }
 
-func (e *SegmentTermsEnum) DocsAndPositionsByFlags(skipDocs util.Bits, reuse DocsAndPositionsEnum, flags int) DocsAndPositionsEnum {
-	panic("not implemented yet")
+func (e *SegmentTermsEnum) DocsAndPositionsByFlags(skipDocs util.Bits, reuse DocsAndPositionsEnum, flags int) (dpe DocsAndPositionsEnum, err error) {
+	if e.fr.fieldInfo.IndexOptions() != INDEX_OPT_DOCS_AND_FREQS_AND_POSITIONS {
+		// Positions were not indexed:
+		return nil, nil
+	}
+
+	assert(!e.eof)
+	err = e.currentFrame.decodeMetaData()
+	if err != nil {
+		return nil, err
+	}
+
+	return e.fr.parent.postingsReader.DocsAndPositions(e.fr.fieldInfo, e.currentFrame.state, skipDocs, reuse, flags)
 }
 
 func (e *SegmentTermsEnum) SeekExactFromLast(target []byte, otherState TermState) error {

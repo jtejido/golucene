@@ -5,6 +5,7 @@ import (
 )
 
 const (
+	DOCS_ENUM_FLAG_NONE  = 0
 	DOCS_ENUM_FLAG_FREQS = 1
 )
 

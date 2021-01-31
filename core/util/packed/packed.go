@@ -226,10 +226,11 @@ type PackedIntsDecoder interface {
 	ByteBlockCount() int
 	// The number of values that can be stored in byteBlockCount() byte blocks
 	ByteValueCount() int
-	decodeLongToLong(blocks, values []int64, iterations int)
+	DecodeLongToLong(blocks, values []int64, iterations int)
 	// Read 8 * iterations * blockCount() blocks from blocks, decodethem and write
 	// iterations * valueCount() values inot values.
 	decodeByteToLong(blocks []byte, values []int64, iterations int)
+	DecodeByteToInt(blocks []byte, values []int32, iterations int)
 }
 
 func GetPackedIntsEncoder(format PackedFormat, version int32, bitsPerValue uint32) PackedIntsEncoder {

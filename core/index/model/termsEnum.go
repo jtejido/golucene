@@ -87,14 +87,14 @@ type TermsEnum interface {
 	Do not call this when the enum is unpositioned. This
 	method will return nil if positions were not
 	indexed. */
-	DocsAndPositions(liveDocs util.Bits, reuse DocsAndPositionsEnum) DocsAndPositionsEnum
+	DocsAndPositions(liveDocs util.Bits, reuse DocsAndPositionsEnum) (DocsAndPositionsEnum, error)
 	/* Get DocsAndPositionEnum for the current term,
 	with control over whether offsets and payloads are
 	required. Some codecs may be able to optimize their
 	implementation when offsets and/or payloads are not required.
 	Do not call this when the enum is unpositioned. This
 	will return nil if positions were not indexed. */
-	DocsAndPositionsByFlags(liveDocs util.Bits, reuse DocsAndPositionsEnum, flags int) DocsAndPositionsEnum
+	DocsAndPositionsByFlags(liveDocs util.Bits, reuse DocsAndPositionsEnum, flags int) (DocsAndPositionsEnum, error)
 	/* Expert: Returns the TermsEnum internal state to position the TermsEnum
 	without re-seeking the term dictionary.
 
@@ -145,7 +145,7 @@ func (e *TermsEnumImpl) Docs(liveDocs util.Bits, reuse DocsEnum) (DocsEnum, erro
 	return e.DocsByFlags(liveDocs, reuse, DOCS_ENUM_FLAG_FREQS)
 }
 
-func (e *TermsEnumImpl) DocsAndPositions(liveDocs util.Bits, reuse DocsAndPositionsEnum) DocsAndPositionsEnum {
+func (e *TermsEnumImpl) DocsAndPositions(liveDocs util.Bits, reuse DocsAndPositionsEnum) (DocsAndPositionsEnum, error) {
 	return e.DocsAndPositionsByFlags(liveDocs, reuse, DOCS_POSITIONS_ENUM_FLAG_OFF_SETS|DOCS_POSITIONS_ENUM_FLAG_PAYLOADS)
 }
 
@@ -211,7 +211,7 @@ func (e *EmptyTermsEnum) DocsByFlags(liveDocs util.Bits, reuse DocsEnum, flags i
 	panic("this method should never be called")
 }
 
-func (e *EmptyTermsEnum) DocsAndPositionsByFlags(liveDocs util.Bits, reuse DocsAndPositionsEnum, flags int) DocsAndPositionsEnum {
+func (e *EmptyTermsEnum) DocsAndPositionsByFlags(liveDocs util.Bits, reuse DocsAndPositionsEnum, flags int) (DocsAndPositionsEnum, error) {
 	panic("this method should never be called")
 }
 

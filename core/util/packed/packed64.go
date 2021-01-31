@@ -97,7 +97,7 @@ func (p *Packed64) getBulk(index int, arr []int64) int {
 	blockIndex := int(uint64(int64(index)*int64(p.bitsPerValue)) >> PACKED64_BLOCK_BITS)
 	assert(((int64(index) * int64(p.bitsPerValue)) & PACKED64_MOD_MASK) == 0)
 	iterations := length / decoder.LongValueCount()
-	decoder.decodeLongToLong(p.blocks[blockIndex:], arr[off:], iterations)
+	decoder.DecodeLongToLong(p.blocks[blockIndex:], arr[off:], iterations)
 	gotValues := iterations * decoder.LongValueCount()
 	index += gotValues
 	length -= gotValues

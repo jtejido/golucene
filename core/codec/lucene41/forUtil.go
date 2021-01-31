@@ -172,6 +172,44 @@ func (u *ForUtil) writeBlock(data []int, encoded []byte, out IndexOutput) error 
 	return out.WriteBytes(encoded[:encodedSize])
 }
 
+type IndexInput interface {
+	ReadByte() (b byte, err error)
+	ReadBytes(buf []byte) error
+	ReadVInt() (n int32, err error)
+}
+
+func (u *ForUtil) readBlock(in IndexInput, encoded []byte, decoded []int32) (err error) {
+	numBits, err := in.ReadByte()
+	if err != nil {
+		return err
+	}
+	assert2(numBits <= 32, "%v", numBits)
+	var value int32
+	if int(numBits) == ALL_VALUES_EQUAL {
+		value, err = in.ReadVInt()
+		if err != nil {
+			return
+		}
+
+		for i := 0; i < LUCENE41_BLOCK_SIZE; i++ {
+			decoded[i] = value
+		}
+		return
+	}
+
+	encodedSize := u.encodedSizes[numBits]
+	if err = in.ReadBytes(encoded[:encodedSize]); err != nil {
+		return
+	}
+
+	decoder := u.decoders[numBits]
+	iters := int(u.iterations[numBits])
+	assert(int(iters)*decoder.ByteValueCount() >= LUCENE41_BLOCK_SIZE)
+
+	decoder.DecodeByteToInt(encoded, decoded, iters)
+	return nil
+}
+
 func encodedSize(format packed.PackedFormat, packedIntsVersion int32, bitsPerValue uint32) int32 {
 	byteCount := format.ByteCount(packedIntsVersion, LUCENE41_BLOCK_SIZE, bitsPerValue)
 	// assert byteCount >= 0 && byteCount <= math.MaxInt32()

@@ -32,5 +32,5 @@ type PostingsReaderBase interface {
 	/** Must fully consume state, since after this call that
 	 *  TermState may be reused. */
 	Docs(fieldInfo *FieldInfo, state *BlockTermState, skipDocs util.Bits, reuse DocsEnum, flags int) (de DocsEnum, err error)
-	// docsAndPositions(fieldInfo FieldInfo, state BlockTermState, skipDocs util.Bits)
+	DocsAndPositions(fieldInfo *FieldInfo, state *BlockTermState, skipDocs util.Bits, reuse DocsAndPositionsEnum, flags int) (DocsAndPositionsEnum, error)
 }

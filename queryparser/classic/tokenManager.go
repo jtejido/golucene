@@ -52,6 +52,16 @@ func newTokenManager(stream CharStream) *TokenManager {
 	}
 }
 
+func (tm *TokenManager) jjStopStringLiteralDfa_2(pos int, active0 int64) int {
+	switch pos {
+	default:
+		return -1
+	}
+}
+func (tm *TokenManager) jjStartNfa_2(pos int, active0 int64) int {
+	return tm.jjMoveNfa_2(tm.jjStopStringLiteralDfa_2(pos, active0), pos+1)
+}
+
 // L41
 func (tm *TokenManager) jjStopAtPos(pos, kind int) int {
 	tm.jjmatchedKind = kind
@@ -756,149 +766,6 @@ func (tm *TokenManager) jjMoveNfa_2(startState, curPos int) int {
 	panic("should not be here")
 }
 
-func jjCanMove_0(hiByte, i1, i2 int, l1, l2 int64) bool {
-	switch hiByte {
-	case 48:
-		return (jjbitVec0[i2] & 12) != 0
-	}
-	return false
-}
-
-func jjCanMove_1(hiByte, i1, i2 int, l1, l2 int64) bool {
-	switch hiByte {
-	case 0:
-		return ((jjbitVec3[i2] & uint64(l2)) != 0)
-	default:
-		if (jjbitVec1[i1] & uint64(l1)) != 0 {
-			return true
-		}
-		return false
-	}
-}
-
-func jjCanMove_2(hiByte, i1, i2 int, l1, l2 int64) bool {
-	switch hiByte {
-	case 0:
-		return ((jjbitVec3[i2] & uint64(l2)) != 0)
-	case 48:
-		return ((jjbitVec1[i2] & uint64(l2)) != 0)
-	}
-	return (jjbitVec4[i1] & uint64(l1)) != 0
-}
-
-func (tm *TokenManager) ReInit(stream CharStream) {
-	tm.jjmatchedPos = 0
-	tm.jjnewStateCnt = 0
-	tm.curLexState = tm.defaultLexState
-	tm.input_stream = stream
-	tm.reInitRounds()
-}
-
-func (tm *TokenManager) reInitRounds() {
-	tm.jjround = 0x80000001
-	for i := 48; i >= 0; i-- {
-		tm.jjrounds[i] = 0x80000000
-	}
-}
-
-// L1027
-
-func (tm *TokenManager) jjFillToken() *Token {
-	var curTokenImage string
-	if im, ok := jjstrLiteralImages[tm.jjmatchedKind]; ok {
-		curTokenImage = im
-	} else {
-		curTokenImage = tm.input_stream.image()
-	}
-	beginLine := tm.input_stream.beginLine()
-	beginColumn := tm.input_stream.beginColumn()
-	endLine := tm.input_stream.endLine()
-	endColumn := tm.input_stream.endColumn()
-	t := newToken(tm.jjmatchedKind, curTokenImage)
-
-	t.beginLine = beginLine
-	t.endLine = endLine
-	t.beginColumn = beginColumn
-	t.endColumn = endColumn
-	return t
-}
-
-func (tm *TokenManager) nextToken() (matchedToken *Token) {
-	curPos := 0
-	var err error
-	var eof = false
-EOFLoop:
-	for !eof {
-		if tm.curChar, err = tm.input_stream.beginToken(); err != nil {
-			tm.jjmatchedKind = 0
-			matchedToken = tm.jjFillToken()
-			return
-		}
-
-		switch tm.curLexState {
-		case 0:
-			tm.jjmatchedKind = 0x7fffffff
-			tm.jjmatchedPos = 0
-			curPos = tm.jjMoveStringLiteralDfa0_0()
-			break
-		case 1:
-			tm.jjmatchedKind = 0x7fffffff
-			tm.jjmatchedPos = 0
-			curPos = tm.jjMoveStringLiteralDfa0_1()
-			break
-		case 2:
-			tm.jjmatchedKind = 0x7fffffff
-			tm.jjmatchedPos = 0
-			curPos = tm.jjMoveStringLiteralDfa0_2()
-		}
-
-		if tm.jjmatchedKind != 0x7fffffff {
-			if tm.jjmatchedPos+1 < curPos {
-				tm.input_stream.backup(curPos - tm.jjmatchedPos - 1)
-			}
-			if (jjtoToken[tm.jjmatchedKind>>6] & (int64(1) << uint(tm.jjmatchedKind&077))) != 0 {
-				matchedToken = tm.jjFillToken()
-				if jjnewLexState[tm.jjmatchedKind] != -1 {
-					tm.curLexState = jjnewLexState[tm.jjmatchedKind]
-					return matchedToken
-				}
-				return matchedToken
-			} else {
-				if n := jjnewLexState[tm.jjmatchedKind]; n != -1 {
-					tm.curLexState = jjnewLexState[tm.jjmatchedKind]
-					continue EOFLoop
-				}
-				continue
-			}
-		}
-		error_line := tm.input_stream.endLine()
-		error_column := tm.input_stream.endColumn()
-		var error_after string
-		var eofSeen = false
-		if _, err = tm.input_stream.readChar(); err == nil {
-			tm.input_stream.backup(1)
-			if curPos > 1 {
-				error_after = tm.input_stream.image()
-			}
-		} else {
-			eofSeen = true
-			if curPos > 1 {
-				error_after = tm.input_stream.image()
-			}
-			if tm.curChar == '\n' || tm.curChar == '\r' {
-				error_line++
-				error_column = 0
-			} else {
-				error_column++
-			}
-		}
-
-		panic(newTokenMgrError(eofSeen, tm.curLexState, error_line,
-			error_column, error_after, tm.curChar, LEXICAL_ERROR))
-	}
-	panic("should not be here")
-}
-
 func (tm *TokenManager) jjMoveStringLiteralDfa0_0() int {
 	return tm.jjMoveNfa_0(0, 0)
 }
@@ -996,6 +863,182 @@ func (tm *TokenManager) jjMoveNfa_0(startState, curPos int) int {
 	}
 }
 
+func (tm *TokenManager) jjStopStringLiteralDfa_1(pos int, active0 int64) int {
+	switch pos {
+	case 0:
+		if (active0 & 0x10000000) != 0 {
+			tm.jjmatchedKind = 32
+			return 6
+		}
+		return -1
+	default:
+		return -1
+	}
+}
+
+func (tm *TokenManager) jjMoveStringLiteralDfa0_1() int {
+	switch tm.curChar {
+	case 84:
+		return tm.jjMoveStringLiteralDfa1_1(0x10000000)
+	case 93:
+		return tm.jjStopAtPos(0, 29)
+	case 125:
+		return tm.jjStopAtPos(0, 30)
+	default:
+		return tm.jjMoveNfa_1(0, 0)
+	}
+}
+
+func jjCanMove_0(hiByte, i1, i2 int, l1, l2 int64) bool {
+	switch hiByte {
+	case 48:
+		return (jjbitVec0[i2] & 12) != 0
+	}
+	return false
+}
+
+func jjCanMove_1(hiByte, i1, i2 int, l1, l2 int64) bool {
+	switch hiByte {
+	case 0:
+		return ((jjbitVec3[i2] & uint64(l2)) != 0)
+	default:
+		if (jjbitVec1[i1] & uint64(l1)) != 0 {
+			return true
+		}
+		return false
+	}
+}
+
+func jjCanMove_2(hiByte, i1, i2 int, l1, l2 int64) bool {
+	switch hiByte {
+	case 0:
+		return ((jjbitVec3[i2] & uint64(l2)) != 0)
+	case 48:
+		return ((jjbitVec1[i2] & uint64(l2)) != 0)
+	}
+	return (jjbitVec4[i1] & uint64(l1)) != 0
+}
+
+func (tm *TokenManager) ReInit(stream CharStream) {
+	tm.jjmatchedPos = 0
+	tm.jjnewStateCnt = 0
+	tm.curLexState = tm.defaultLexState
+	tm.input_stream = stream
+	tm.reInitRounds()
+}
+
+func (tm *TokenManager) reInitRounds() {
+	tm.jjround = 0x80000001
+	for i := 48; i >= 0; i-- {
+		tm.jjrounds[i] = 0x80000000
+	}
+}
+
+// L1027
+
+func (tm *TokenManager) jjFillToken() *Token {
+	var curTokenImage string
+	if im, ok := jjstrLiteralImages[tm.jjmatchedKind]; ok {
+		curTokenImage = im
+	} else {
+		curTokenImage = tm.input_stream.image()
+	}
+	beginLine := tm.input_stream.beginLine()
+	beginColumn := tm.input_stream.beginColumn()
+	endLine := tm.input_stream.endLine()
+	endColumn := tm.input_stream.endColumn()
+	t := newToken(tm.jjmatchedKind, curTokenImage)
+
+	t.beginLine = beginLine
+	t.endLine = endLine
+	t.beginColumn = beginColumn
+	t.endColumn = endColumn
+	return t
+}
+
+func (tm *TokenManager) nextToken() (matchedToken *Token) {
+	curPos := 0
+	var err error
+
+	for {
+		if tm.curChar, err = tm.input_stream.beginToken(); err != nil {
+			tm.jjmatchedKind = 0
+			matchedToken = tm.jjFillToken()
+			return
+		}
+
+		switch tm.curLexState {
+		case 0:
+			tm.jjmatchedKind = 0x7fffffff
+			tm.jjmatchedPos = 0
+			curPos = tm.jjMoveStringLiteralDfa0_0()
+			break
+		case 1:
+			tm.jjmatchedKind = 0x7fffffff
+			tm.jjmatchedPos = 0
+			curPos = tm.jjMoveStringLiteralDfa0_1()
+			break
+		case 2:
+			tm.jjmatchedKind = 0x7fffffff
+			tm.jjmatchedPos = 0
+			curPos = tm.jjMoveStringLiteralDfa0_2()
+		}
+
+		if tm.jjmatchedKind != 0x7fffffff {
+			if tm.jjmatchedPos+1 < curPos {
+				tm.input_stream.backup(curPos - tm.jjmatchedPos - 1)
+			}
+			if (jjtoToken[tm.jjmatchedKind>>6] & (int64(1) << uint(tm.jjmatchedKind&077))) != 0 {
+				matchedToken = tm.jjFillToken()
+				if jjnewLexState[tm.jjmatchedKind] != -1 {
+					tm.curLexState = jjnewLexState[tm.jjmatchedKind]
+					return matchedToken
+				}
+				return matchedToken
+			} else {
+				if n := jjnewLexState[tm.jjmatchedKind]; n != -1 {
+					tm.curLexState = jjnewLexState[tm.jjmatchedKind]
+					continue
+				}
+				continue
+			}
+		}
+		error_line := tm.input_stream.endLine()
+		error_column := tm.input_stream.endColumn()
+		var error_after string
+		var eofSeen = false
+		if _, err = tm.input_stream.readChar(); err == nil {
+			tm.input_stream.backup(1)
+
+		} else {
+			eofSeen = true
+			if curPos > 1 {
+				error_after = tm.input_stream.image()
+			} else {
+				error_after = ""
+			}
+			if tm.curChar == '\n' || tm.curChar == '\r' {
+				error_line++
+				error_column = 0
+			} else {
+				error_column++
+			}
+		}
+
+		if !eofSeen {
+			tm.input_stream.backup(1)
+			if curPos > 1 {
+				error_after = tm.input_stream.image()
+			} else {
+				error_after = ""
+			}
+		}
+
+		panic(newTokenMgrError(eofSeen, tm.curLexState, error_line,
+			error_column, error_after, tm.curChar, LEXICAL_ERROR))
+	}
+}
+
 // L1137
 func (tm *TokenManager) jjCheckNAdd(state int) {
 	if tm.jjrounds[state] != tm.jjround {
@@ -1035,19 +1078,6 @@ func (tm *TokenManager) jjCheckNAddStates(start, end int) {
 	}
 }
 
-func (tm *TokenManager) jjStopStringLiteralDfa_1(pos int, active0 int64) int {
-	switch pos {
-	case 0:
-		if (active0 & 0x10000000) != 0 {
-			tm.jjmatchedKind = 32
-			return 6
-		}
-		return -1
-	default:
-		return -1
-	}
-}
-
 func (tm *TokenManager) jjMoveStringLiteralDfa1_1(active0 int64) int {
 	var err error
 
@@ -1069,6 +1099,10 @@ func (tm *TokenManager) jjMoveStringLiteralDfa1_1(active0 int64) int {
 	return tm.jjStartNfa_1(0, active0)
 }
 
+func (tm *TokenManager) jjStartNfa_1(pos int, active0 int64) int {
+	return tm.jjMoveNfa_1(tm.jjStopStringLiteralDfa_1(pos, active0), pos+1)
+}
+
 func (tm *TokenManager) jjStartNfaWithStates_1(pos, kind, state int) int {
 	tm.jjmatchedKind = kind
 	tm.jjmatchedPos = pos
@@ -1079,23 +1113,6 @@ func (tm *TokenManager) jjStartNfaWithStates_1(pos, kind, state int) int {
 	}
 
 	return tm.jjMoveNfa_1(state, pos+1)
-}
-
-func (tm *TokenManager) jjStartNfa_1(pos int, active0 int64) int {
-	return tm.jjMoveNfa_1(tm.jjStopStringLiteralDfa_1(pos, active0), pos+1)
-}
-
-func (tm *TokenManager) jjMoveStringLiteralDfa0_1() int {
-	switch tm.curChar {
-	case 84:
-		return tm.jjMoveStringLiteralDfa1_1(0x10000000)
-	case 93:
-		return tm.jjStopAtPos(0, 29)
-	case 125:
-		return tm.jjStopAtPos(0, 30)
-	default:
-		return tm.jjMoveNfa_1(0, 0)
-	}
 }
 
 func (tm *TokenManager) jjMoveNfa_1(startState, curPos int) int {

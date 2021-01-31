@@ -61,7 +61,7 @@ func (p *BulkOperationPacked) ByteValueCount() int {
 	return p.byteValueCount
 }
 
-func (p *BulkOperationPacked) decodeLongToLong(blocks, values []int64, iterations int) {
+func (p *BulkOperationPacked) DecodeLongToLong(blocks, values []int64, iterations int) {
 	blocksOff, valuesOff := 0, 0
 	bitsLeft := 64
 	for i := 0; i < p.longValueCount*iterations; i++ {
@@ -242,7 +242,7 @@ func (p *BulkOperationPackedSingleBlock) encodeInts(values []int) int64 {
 	return block
 }
 
-func (p *BulkOperationPackedSingleBlock) decodeLongToLong(blocks, values []int64, iterations int) {
+func (p *BulkOperationPackedSingleBlock) DecodeLongToLong(blocks, values []int64, iterations int) {
 	blocksOffset, valuesOffset := 0, 0
 	for i := 0; i < iterations; i++ {
 		block := blocks[blocksOffset]

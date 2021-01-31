@@ -27,6 +27,7 @@ type QueryParser struct {
 	jj_la                  int
 	jj_gen                 int
 	jj_la1                 []int
+	jj_kind                int
 
 	jj_2_rtns []*JJCalls
 	jj_rescan bool
@@ -38,6 +39,7 @@ func NewQueryParser(matchVersion util.Version, f string, a analysis.Analyzer) *Q
 		token_source: newTokenManager(newFastCharStream(strings.NewReader(""))),
 		jj_la1:       make([]int, 21),
 		jj_2_rtns:    make([]*JJCalls, 1),
+		jj_kind:      -1,
 	}
 	qp.QueryParserBase = newQueryParserBase(qp)
 	qp.ReInit(newFastCharStream(strings.NewReader("")))
@@ -85,7 +87,28 @@ func (qp *QueryParser) modifiers() (ret int, err error) {
 	}
 	switch qp.jj_ntk {
 	case NOT, PLUS, MINUS:
-		panic("not implemented yet")
+		if qp.jj_ntk == -1 {
+			qp.get_jj_ntk()
+		}
+		switch qp.jj_ntk {
+		case PLUS:
+			qp.jj_consume_token(PLUS)
+			ret = MOD_REQ
+			break
+		case MINUS:
+			qp.jj_consume_token(MINUS)
+			ret = MOD_NOT
+			break
+		case NOT:
+			qp.jj_consume_token(NOT)
+			ret = MOD_NOT
+			break
+		default:
+			qp.jj_la1[2] = qp.jj_gen
+			qp.jj_consume_token(-1)
+			return 0, errors.New("parse error")
+		}
+		break
 	default:
 		qp.jj_la1[3] = qp.jj_gen
 	}
@@ -114,22 +137,21 @@ func (qp *QueryParser) Query(field string) (q search.Query, err error) {
 	if mods == MOD_NONE {
 		firstQuery = q
 	}
+label_1:
 	for {
 		if qp.jj_ntk == -1 {
 			qp.get_jj_ntk()
 		}
-		var found = false
 		switch qp.jj_ntk {
 		case AND, OR, NOT, PLUS, MINUS, BAREOPER, LPAREN, STAR, QUOTED,
 			TERM, PREFIXTERM, WILDTERM, REGEXPTERM, RANGEIN_START,
 			RANGEEX_START, NUMBER:
+			break
 		default:
 			qp.jj_la1[4] = qp.jj_gen
-			found = true
+			break label_1
 		}
-		if found {
-			break
-		}
+
 		if conj, err = qp.conjunction(); err != nil {
 			return nil, err
 		}
@@ -187,6 +209,7 @@ func (qp *QueryParser) clause(field string) (q search.Query, err error) {
 		if q, err = qp.term(field); err != nil {
 			return nil, err
 		}
+		break
 	case LPAREN:
 		qp.jj_consume_token(LPAREN)
 		q, err = qp.Query(field)
@@ -209,6 +232,7 @@ func (qp *QueryParser) clause(field string) (q search.Query, err error) {
 			qp.jj_la1[6] = qp.jj_gen
 
 		}
+		break
 	default:
 		qp.jj_la1[7] = qp.jj_gen
 		if _, err = qp.jj_consume_token(-1); err != nil {
@@ -220,8 +244,8 @@ func (qp *QueryParser) clause(field string) (q search.Query, err error) {
 }
 
 func (qp *QueryParser) term(field string) (q search.Query, err error) {
-	var term, boost, fuzzySlop /*, goop1, goop2*/ *Token
-	var prefix, wildcard, fuzzy, regexp /*, startInc, endInc*/ bool
+	var term, boost, fuzzySlop, goop1, goop2 *Token
+	var prefix, wildcard, fuzzy, regexp, startInc, endInc bool
 	if qp.jj_ntk == -1 {
 		qp.get_jj_ntk()
 	}
@@ -235,27 +259,57 @@ func (qp *QueryParser) term(field string) (q search.Query, err error) {
 			if term, err = qp.jj_consume_token(TERM); err != nil {
 				return nil, err
 			}
+			break
 		case STAR:
-			panic("not implemented yet")
+			if term, err = qp.jj_consume_token(STAR); err != nil {
+				return nil, err
+			}
+			wildcard = true
+			break
 		case PREFIXTERM:
-			panic("not implemented yet")
+			if term, err = qp.jj_consume_token(PREFIXTERM); err != nil {
+				return nil, err
+			}
+			prefix = true
+			break
 		case WILDTERM:
-			panic("not implemented yet")
+			if term, err = qp.jj_consume_token(WILDTERM); err != nil {
+				return nil, err
+			}
+			wildcard = true
+			break
 		case REGEXPTERM:
-			panic("not implemented yet")
+			if term, err = qp.jj_consume_token(REGEXPTERM); err != nil {
+				return nil, err
+			}
+			regexp = true
+			break
 		case NUMBER:
-			panic("not implemented yet")
+			if term, err = qp.jj_consume_token(NUMBER); err != nil {
+				return nil, err
+			}
+			break
 		case BAREOPER:
-			panic("not implemented yet")
+			if term, err = qp.jj_consume_token(BAREOPER); err != nil {
+				return nil, err
+			}
+			term.image = term.image[:1]
+			break
 		default:
-			panic("not implemented yet")
+			qp.jj_la1[8] = qp.jj_gen
+			qp.jj_consume_token(-1)
+			return nil, errors.New("parse error")
 		}
 		if qp.jj_ntk == -1 {
 			qp.get_jj_ntk()
 		}
 		switch qp.jj_ntk {
 		case FUZZY_SLOP:
-			panic("not implemented yet")
+			if fuzzySlop, err = qp.jj_consume_token(FUZZY_SLOP); err != nil {
+				return nil, err
+			}
+			fuzzy = true
+			break
 		default:
 			qp.jj_la1[9] = qp.jj_gen
 		}
@@ -264,20 +318,191 @@ func (qp *QueryParser) term(field string) (q search.Query, err error) {
 		}
 		switch qp.jj_ntk {
 		case CARAT:
-			panic("not implemented yet")
+			qp.jj_consume_token(CARAT)
+			if boost, err = qp.jj_consume_token(NUMBER); err != nil {
+				return nil, err
+			}
+			if qp.jj_ntk == -1 {
+				qp.get_jj_ntk()
+			}
+			switch qp.jj_ntk {
+			case FUZZY_SLOP:
+				if fuzzySlop, err = qp.jj_consume_token(FUZZY_SLOP); err != nil {
+					return nil, err
+				}
+				fuzzy = true
+				break
+			default:
+				qp.jj_la1[10] = qp.jj_gen
+			}
+			break
 		default:
 			qp.jj_la1[11] = qp.jj_gen
 		}
 		if q, err = qp.handleBareTokenQuery(field, term, fuzzySlop, prefix, wildcard, fuzzy, regexp); err != nil {
 			return nil, err
 		}
-
+		break
 	case RANGEIN_START, RANGEEX_START:
-		panic("not implemented yet")
+		if qp.jj_ntk == -1 {
+			qp.get_jj_ntk()
+		}
+		switch qp.jj_ntk {
+		case RANGEIN_START:
+			qp.jj_consume_token(RANGEIN_START)
+			startInc = true
+			break
+		case RANGEEX_START:
+			qp.jj_consume_token(RANGEEX_START)
+			break
+		default:
+			qp.jj_la1[12] = qp.jj_gen
+			qp.jj_consume_token(-1)
+			return nil, errors.New("parse error")
+		}
+
+		if qp.jj_ntk == -1 {
+			qp.get_jj_ntk()
+		}
+		switch qp.jj_ntk {
+		case RANGE_GOOP:
+			if goop1, err = qp.jj_consume_token(RANGE_GOOP); err != nil {
+				return nil, err
+			}
+			break
+		case RANGE_QUOTED:
+			if goop1, err = qp.jj_consume_token(RANGE_QUOTED); err != nil {
+				return nil, err
+			}
+			break
+		default:
+			qp.jj_la1[13] = qp.jj_gen
+			qp.jj_consume_token(-1)
+			return nil, errors.New("parse error")
+		}
+		if qp.jj_ntk == -1 {
+			qp.get_jj_ntk()
+		}
+		switch qp.jj_ntk {
+		case RANGE_TO:
+			qp.jj_consume_token(RANGE_TO)
+			break
+		default:
+			qp.jj_la1[14] = qp.jj_gen
+
+		}
+		if qp.jj_ntk == -1 {
+			qp.get_jj_ntk()
+		}
+		switch qp.jj_ntk {
+		case RANGE_GOOP:
+			if goop2, err = qp.jj_consume_token(RANGE_GOOP); err != nil {
+				return nil, err
+			}
+		case RANGE_QUOTED:
+			if goop2, err = qp.jj_consume_token(RANGE_QUOTED); err != nil {
+				return nil, err
+			}
+		default:
+			qp.jj_la1[15] = qp.jj_gen
+			qp.jj_consume_token(-1)
+			return nil, errors.New("parse error")
+		}
+
+		if qp.jj_ntk == -1 {
+			qp.get_jj_ntk()
+		}
+		switch qp.jj_ntk {
+		case RANGEIN_END:
+			qp.jj_consume_token(RANGEIN_END)
+			endInc = true
+			break
+		case RANGEEX_END:
+			qp.jj_consume_token(RANGEEX_END)
+			break
+		default:
+			qp.jj_la1[16] = qp.jj_gen
+			qp.jj_consume_token(-1)
+			return nil, errors.New("parse error")
+		}
+
+		if qp.jj_ntk == -1 {
+			qp.get_jj_ntk()
+		}
+		switch qp.jj_ntk {
+		case CARAT:
+			qp.jj_consume_token(CARAT)
+			if boost, err = qp.jj_consume_token(NUMBER); err != nil {
+				return nil, err
+			}
+			break
+		default:
+			qp.jj_la1[17] = qp.jj_gen
+
+		}
+		var startOpen, endOpen bool
+		if goop1.kind == RANGE_QUOTED {
+			goop1.image = goop1.image[1 : len(goop1.image)-1]
+		} else if "*" == goop1.image {
+			startOpen = true
+		}
+		if goop2.kind == RANGE_QUOTED {
+			goop2.image = goop2.image[1 : len(goop2.image)-1]
+		} else if "*" == goop2.image {
+			endOpen = true
+		}
+		var s1, s2 string
+		if !startOpen {
+			if s1, err = qp.discardEscapeChar(goop1.image); err != nil {
+				return nil, err
+			}
+		}
+
+		if !endOpen {
+			if s2, err = qp.discardEscapeChar(goop2.image); err != nil {
+				return nil, err
+			}
+		}
+		q = qp.rangeQuery(field, s1, s2, startInc, endInc)
+		break
 	case QUOTED:
-		panic("not implemented yet")
+		if term, err = qp.jj_consume_token(QUOTED); err != nil {
+			return nil, err
+		}
+		if qp.jj_ntk == -1 {
+			qp.get_jj_ntk()
+		}
+		switch qp.jj_ntk {
+		case FUZZY_SLOP:
+			if fuzzySlop, err = qp.jj_consume_token(FUZZY_SLOP); err != nil {
+				return nil, err
+			}
+			break
+		default:
+			qp.jj_la1[18] = qp.jj_gen
+		}
+		if qp.jj_ntk == -1 {
+			qp.get_jj_ntk()
+		}
+		switch qp.jj_ntk {
+		case CARAT:
+			qp.jj_consume_token(CARAT)
+			if boost, err = qp.jj_consume_token(NUMBER); err != nil {
+				return nil, err
+			}
+			break
+		default:
+			qp.jj_la1[19] = qp.jj_gen
+		}
+		q, err = qp.handleQuotedTerm(field, term, fuzzySlop)
+		if err != nil {
+			return nil, err
+		}
+		break
 	default:
-		panic("not implemented yet")
+		qp.jj_la1[20] = qp.jj_gen
+		qp.jj_consume_token(-1)
+		return nil, errors.New("parse error")
 	}
 	return qp.handleBoost(q, boost), nil
 }
@@ -346,11 +571,20 @@ func (qp *QueryParser) jj_consume_token(kind int) (*Token, error) {
 		qp.jj_gen++
 		if qp.jj_gc++; qp.jj_gc > 100 {
 			qp.jj_gc = 0
-			panic("not implemented yet")
+			for i := 0; i < len(qp.jj_2_rtns); i++ {
+				c := qp.jj_2_rtns[i]
+				for c != nil {
+					if c.gen < qp.jj_gen {
+						c.first = nil
+					}
+					c = c.next
+				}
+			}
 		}
 		return qp.token, nil
 	}
 	qp.token = oldToken
+	qp.jj_kind = kind
 	panic("not implemented yet")
 }
 

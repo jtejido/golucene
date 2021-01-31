@@ -58,11 +58,24 @@ func main() {
 
 	var q search.Query
 	var err error
-	if q, err = parser.Parse("test AND (2 OR 1)"); err != nil {
+	if q, err = parser.Parse("test 2"); err != nil {
 		fmt.Printf("error: %s", err.Error())
 	}
 
 	res, _ := searcher.Search(q, nil, 1000)
+	fmt.Printf("Found %v hit(s).\n", res.TotalHits)
+	for _, hit := range res.ScoreDocs {
+		fmt.Printf("Doc %v score: %v\n", hit.Doc, hit.Score)
+		doc, _ := reader.Document(hit.Doc)
+		fmt.Printf("body -> %v\n", doc.Get("body"))
+	}
+
+	fmt.Printf("Searching via API - PhraseQuery.\n")
+	q2 := search.NewPhraseQuery()
+	q2.Add(index.NewTerm("body", "test"))
+	q2.Add(index.NewTerm("body", "2"))
+
+	res, _ = searcher.Search(q2, nil, 1000)
 	fmt.Printf("Found %v hit(s).\n", res.TotalHits)
 	for _, hit := range res.ScoreDocs {
 		fmt.Printf("Doc %v score: %v\n", hit.Doc, hit.Score)

@@ -329,12 +329,22 @@ func (w *Lucene41PostingsWriter) AddPosition(position int,
 			// no paylaod
 			w.payloadLengthBuffer[w.posBufferUpto] = 0
 		} else {
-			panic("not implemented yet")
+			w.payloadLengthBuffer[w.posBufferUpto] = len(payload)
+			if w.payloadByteUpto+len(payload) > len(w.payloadBytes) {
+				w.payloadBytes = util.GrowByteSlice(w.payloadBytes, w.payloadByteUpto+len(payload))
+			}
+			copy(w.payloadBytes, payload)
+			//System.arraycopy(payload.bytes, payload.offset, payloadBytes, payloadByteUpto, len(payload));
+			w.payloadByteUpto += len(payload)
 		}
 	}
 
 	if w.fieldHasOffsets {
-		panic("not implemented yet")
+		assert(startOffset >= w.lastStartOffset)
+		assert(endOffset >= startOffset)
+		w.offsetStartDeltaBuffer[w.posBufferUpto] = startOffset - w.lastStartOffset
+		w.offsetLengthBuffer[w.posBufferUpto] = endOffset - startOffset
+		w.lastStartOffset = startOffset
 	}
 
 	w.posBufferUpto++
@@ -346,10 +356,24 @@ func (w *Lucene41PostingsWriter) AddPosition(position int,
 		}
 
 		if w.fieldHasPayloads {
-			panic("niy")
+			if err = w.forUtil.writeBlock(w.payloadLengthBuffer, w.encoded, w.payOut); err != nil {
+				return err
+			}
+			if err = w.payOut.WriteVInt(int32(w.payloadByteUpto)); err != nil {
+				return err
+			}
+			if err = w.payOut.WriteBytes(w.payloadBytes[:w.payloadByteUpto]); err != nil {
+				return err
+			}
+			w.payloadByteUpto = 0
 		}
 		if w.fieldHasOffsets {
-			panic("niy")
+			if err = w.forUtil.writeBlock(w.offsetStartDeltaBuffer, w.encoded, w.payOut); err != nil {
+				return err
+			}
+			if err = w.forUtil.writeBlock(w.offsetLengthBuffer, w.encoded, w.payOut); err != nil {
+				return err
+			}
 		}
 		w.posBufferUpto = 0
 	}
@@ -432,13 +456,41 @@ func (w *Lucene41PostingsWriter) FinishTerm(_state *BlockTermState) error {
 			// DF terms = vast vast majority)
 
 			// vInt encode the remaining positions/payloads/offsets:
-			// lastPayloadLength := -1 // force first payload length to be written
-			// lastOffsetLength := -1  // force first offset length to be written
+			lastPayloadLength := -1 // force first payload length to be written
+			lastOffsetLength := -1  // force first offset length to be written
 			payloadBytesReadUpto := 0
 			for i := 0; i < w.posBufferUpto; i++ {
 				posDelta := w.posDeltaBuffer[i]
 				if w.fieldHasPayloads {
-					panic("not implemented yet")
+					var err error
+					payloadLength := w.payloadLengthBuffer[i]
+					if payloadLength != lastPayloadLength {
+						lastPayloadLength = payloadLength
+						if err = w.posOut.WriteVInt(int32((posDelta << 1) | 1)); err != nil {
+							return err
+						}
+						if err = w.posOut.WriteVInt(int32(payloadLength)); err != nil {
+							return err
+						}
+					} else {
+						if err = w.posOut.WriteVInt(int32(posDelta << 1)); err != nil {
+							return err
+						}
+					}
+
+					// if (DEBUG) {
+					//   System.out.println("        i=" + i + " payloadLen=" + payloadLength);
+					// }
+
+					if payloadLength != 0 {
+						// if (DEBUG) {
+						//   System.out.println("          write payload @ pos.fp=" + posOut.getFilePointer());
+						// }
+						if err = w.posOut.WriteBytes(w.payloadBytes[payloadBytesReadUpto:payloadLength]); err != nil {
+							return err
+						}
+						payloadBytesReadUpto += payloadLength
+					}
 				} else {
 					err := w.posOut.WriteVInt(int32(posDelta))
 					if err != nil {
@@ -447,7 +499,22 @@ func (w *Lucene41PostingsWriter) FinishTerm(_state *BlockTermState) error {
 				}
 
 				if w.fieldHasOffsets {
-					panic("not implemented yet")
+					var err error
+					delta := w.offsetStartDeltaBuffer[i]
+					length := w.offsetLengthBuffer[i]
+					if length == lastOffsetLength {
+						if err = w.posOut.WriteVInt(int32(delta << 1)); err != nil {
+							return err
+						}
+					} else {
+						if err = w.posOut.WriteVInt(int32(delta<<1 | 1)); err != nil {
+							return err
+						}
+						if err = w.posOut.WriteVInt(int32(length)); err != nil {
+							return err
+						}
+						lastOffsetLength = length
+					}
 				}
 			}
 

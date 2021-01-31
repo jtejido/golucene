@@ -90,7 +90,7 @@ func (p *Packed64SingleBlock) getBulk(index int, arr []int64) int {
 	assert(op.LongValueCount() == valuesPerBlock)
 	blockIndex := index / valuesPerBlock
 	nBlocks := (index+length)/valuesPerBlock - blockIndex
-	op.decodeLongToLong(p.blocks[blockIndex:], arr[off:], nBlocks)
+	op.DecodeLongToLong(p.blocks[blockIndex:], arr[off:], nBlocks)
 	diff := nBlocks * valuesPerBlock
 	index += diff
 	length -= diff
