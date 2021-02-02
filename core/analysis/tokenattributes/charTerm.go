@@ -26,6 +26,8 @@ type CharTermAttribute interface {
 	// argument. If argument is "", then the three characters "nil" are
 	// appended.
 	AppendString(string) CharTermAttribute
+
+	AppendCharsRef(*util.CharsRef) CharTermAttribute
 }
 
 const MIN_BUFFER_SIZE = 10
@@ -105,6 +107,33 @@ func (a *CharTermAttributeImpl) AppendString(s string) CharTermAttribute {
 		a.termLength++
 	}
 	return a
+}
+
+func (a *CharTermAttributeImpl) AppendCharsRef(cb *util.CharsRef) CharTermAttribute {
+	if cb == nil {
+		return a.appendNil()
+	}
+	end := cb.Length
+	start := 0
+
+	l := end - start
+	cblen := end
+	if l < 0 || start > cblen || end > cblen {
+		panic("index out of bounds")
+	}
+	if l == 0 {
+		return a
+	}
+	a.ResizeBuffer(a.termLength + l)
+
+	for start < end {
+		a.termBuffer[a.termLength] = cb.CharAt(start)
+		start++
+		a.termLength++
+	}
+	// no fall-through here, as termLength is updated!
+	return a
+
 }
 
 func (a *CharTermAttributeImpl) appendNil() CharTermAttribute {
