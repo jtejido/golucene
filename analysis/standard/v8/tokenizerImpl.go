@@ -444,7 +444,6 @@ func zzUnpackAttribute(packed []int) []int {
 			j++
 			count--
 		}
-		i += 2
 	}
 	return m
 }
@@ -457,6 +456,7 @@ const (
 	HIRAGANA_TYPE         = HIRAGANA
 	KATAKANA_TYPE         = KATAKANA
 	HANGUL_TYPE           = HANGUL
+	EMOJI_TYPE            = EMOJI
 )
 
 /*
@@ -597,7 +597,7 @@ func (t *StandardTokenizerImpl) zzRefill() (bool, error) {
 		/* potentially more input available */
 		return false, nil
 	}
-
+	assert(numRead == 0 && err == io.EOF)
 	/* numRead < 0 ==> end of stream */
 	return true, nil
 }
@@ -763,24 +763,69 @@ func (t *StandardTokenizerImpl) nextToken() (int, error) {
 		}
 
 		switch cond {
-		case 1, 9, 10, 11, 12, 13, 14, 15, 16:
-			// break so we don't hit fall-through warning:
-			// not numeric, word, ideographic, hiragana, or SE Asian -- ignore it.
+		case 1:
+			{ /* Break so we don't hit fall-through warning: */
+				break /* Not numeric, word, ideographic, hiragana, emoji or SE Asian -- ignore it. */
+			}
+			// fall through
+		case 10:
 			break
 		case 2:
-			return WORD_TYPE, nil
+			{
+				return EMOJI_TYPE, nil
+			}
+			// fall through
+		case 11:
+			break
 		case 3:
-			return HANGUL_TYPE, nil
+			{
+				return WORD_TYPE, nil
+			}
+			// fall through
+		case 12:
+			break
 		case 4:
-			return NUMERIC_TYPE, nil
+			{
+				return HANGUL_TYPE, nil
+			}
+			// fall through
+		case 13:
+			break
 		case 5:
-			return KATAKANA_TYPE, nil
+			{
+				return NUMERIC_TYPE, nil
+			}
+			// fall through
+		case 14:
+			break
 		case 6:
-			return IDEOGRAPHIC_TYPE, nil
+			{
+				return KATAKANA_TYPE, nil
+			}
+			// fall through
+		case 15:
+			break
 		case 7:
-			return HIRAGANA_TYPE, nil
+			{
+				return IDEOGRAPHIC_TYPE, nil
+			}
+			// fall through
+		case 16:
+			break
 		case 8:
-			return SOUTH_EAST_ASIAN_TYPE, nil
+			{
+				return HIRAGANA_TYPE, nil
+			}
+			// fall through
+		case 17:
+			break
+		case 9:
+			{
+				return SOUTH_EAST_ASIAN_TYPE, nil
+			}
+			// fall through
+		case 18:
+			break
 		default:
 			if zzInput == YYEOF && t.zzStartRead == t.zzCurrentPos {
 				t.zzAtEOF = true
