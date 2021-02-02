@@ -38,18 +38,13 @@ type Weight interface {
 	ValueForNormalization() float32
 	/** Assigns the query normalization factor and boost from parent queries to this. */
 	Normalize(norm float32, topLevelBoost float32)
-	// Scorer(*index.AtomicReaderContext, util.Bits) (Scorer, error)
 	/**
-	 * Returns a {@link Scorer} which scores documents in/out-of order according
-	 * to <code>scoreDocsInOrder</code>.
-	 * <p>
-	 * <b>NOTE:</b> even if <code>scoreDocsInOrder</code> is false, it is
-	 * recommended to check whether the returned <code>Scorer</code> indeed scores
-	 * documents out of order (i.e., call {@link #scoresDocsOutOfOrder()}), as
-	 * some <code>Scorer</code> implementations will always return documents
-	 * in-order.<br>
-	 * <b>NOTE:</b> null can be returned if no documents will be scored by this
-	 * query.
+	 * Optional method, to return a {@link BulkScorer} to
+	 * score the query and send hits to a {@link Collector}.
+	 * Only queries that have a different top-level approach
+	 * need to override this; the default implementation
+	 * pulls a normal {@link Scorer} and iterates and
+	 * collects the resulting hits.
 	 */
 	BulkScorer(*index.AtomicReaderContext, bool, util.Bits) (BulkScorer, error)
 	/**
@@ -64,6 +59,19 @@ type Weight interface {
 	 * the <code>Scorer</code> scores documents in-order.
 	 */
 	IsScoresDocsOutOfOrder() bool // usually false
+
+	/**
+	 * Returns a {@link Scorer} which scores documents in/out-of order according
+	 * to <code>scoreDocsInOrder</code>.
+	 * <p>
+	 * <b>NOTE:</b> even if <code>scoreDocsInOrder</code> is false, it is
+	 * recommended to check whether the returned <code>Scorer</code> indeed scores
+	 * documents out of order (i.e., call {@link #scoresDocsOutOfOrder()}), as
+	 * some <code>Scorer</code> implementations will always return documents
+	 * in-order.<br>
+	 * <b>NOTE:</b> null can be returned if no documents will be scored by this
+	 * query.
+	 */
 	Scorer(*index.AtomicReaderContext, util.Bits) (Scorer, error)
 }
 

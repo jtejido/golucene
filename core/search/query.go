@@ -13,9 +13,10 @@ The abstract base class for queries.
 type Query interface {
 	SetBoost(b float32)
 	Boost() float32
-	QuerySPI
+	ToString(string) string
 	CreateWeight(ss *IndexSearcher) (w Weight, err error)
 	Rewrite(r index.IndexReader) Query
+	Clone() Query
 }
 
 type QuerySPI interface {
@@ -36,8 +37,9 @@ func NewAbstractQuery(self interface{}) *AbstractQuery {
 	}
 }
 
-func (q *AbstractQuery) SetBoost(b float32) { q.boost = b }
-func (q *AbstractQuery) Boost() float32     { return q.boost }
+func (q *AbstractQuery) ToString(field string) string { return q.spi.ToString(field) }
+func (q *AbstractQuery) SetBoost(b float32)           { q.boost = b }
+func (q *AbstractQuery) Boost() float32               { return q.boost }
 
 func (q *AbstractQuery) String() string { return q.spi.ToString("") }
 
@@ -47,4 +49,12 @@ func (q *AbstractQuery) CreateWeight(ss *IndexSearcher) (w Weight, err error) {
 
 func (q *AbstractQuery) Rewrite(r index.IndexReader) Query {
 	return q.value
+}
+
+func (q *AbstractQuery) Clone() Query {
+	return &AbstractQuery{
+		spi:   q.spi,
+		value: q.value,
+		boost: q.boost,
+	}
 }
