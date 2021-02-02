@@ -26,7 +26,7 @@ func main() {
 	writer, _ := index.NewIndexWriter(directory, conf)
 
 	d := document.NewDocument()
-	d.Add(document.NewTextFieldFromString("body", "test 1 Lorem ipsum dolor sit amet, consectetur adipiscing elit.Sed vitae ante quis sem iaculis hendrerit.Interdum et malesuada fames ac ante ipsum primis in faucibus.Donec at luctus leo.Aenean eget tempor sem.Aliquam fermentum eleifend pretium.Sed fringilla, velit id mattis mattis, nisi elit consectetur sapien, id suscipit massa sem vitae justo", document.STORE_YES))
+	d.Add(document.NewTextFieldFromString("body", "test. 1 Lorem ipsum dolor sit amet, consectetur adipiscing elit.Sed vitae ante quis sem iaculis hendrerit.Interdum et malesuada fames ac ante ipsum primis in faucibus.Donec at luctus leo.Aenean eget tempor sem.Aliquam fermentum eleifend pretium.Sed fringilla, velit id mattis mattis, nisi elit consectetur sapien, id suscipit massa sem vitae justo", document.STORE_YES))
 	writer.AddDocument(d.Fields())
 
 	d2 := document.NewDocument()
@@ -58,7 +58,7 @@ func main() {
 
 	var q search.Query
 	var err error
-	if q, err = parser.Parse("test 2"); err != nil {
+	if q, err = parser.Parse("test. 1"); err != nil {
 		fmt.Printf("error: %s", err.Error())
 	}
 
