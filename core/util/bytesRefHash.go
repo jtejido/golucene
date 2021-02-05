@@ -4,6 +4,10 @@ import (
 	"fmt"
 )
 
+const (
+	DEFAULT_CAPACITY = 16
+)
+
 /*
 BytesRefHash is a special purpose hash map like data structure
 optimized for BytesRef instances. BytesRefHash maintains mappings of
@@ -29,6 +33,14 @@ type BytesRefHash struct {
 	ids             []int
 	bytesStartArray BytesStartArray
 	bytesUsed       Counter
+}
+
+func NewDefaultBytesRefHash() *BytesRefHash {
+	return NewDefaultBytesRefHashWithPool(NewByteBlockPool(NewDirectAllocator()))
+}
+
+func NewDefaultBytesRefHashWithPool(pool *ByteBlockPool) *BytesRefHash {
+	return NewBytesRefHash(pool, DEFAULT_CAPACITY, NewDefaultDirectBytesStartArray(DEFAULT_CAPACITY))
 }
 
 func NewBytesRefHash(pool *ByteBlockPool, capacity int,
@@ -376,4 +388,41 @@ type BytesStartArray interface {
 	Grow() []int
 	// clears the BytesStartArray and returns the cleared instance.
 	Clear() []int
+}
+
+type DirectBytesStartArray struct {
+	initSize   int
+	bytesStart []int
+	bytesUsed  Counter
+}
+
+func NewDirectBytesStartArray(initSize int, counter Counter) *DirectBytesStartArray {
+	return &DirectBytesStartArray{
+		bytesUsed: counter,
+		initSize:  initSize,
+	}
+}
+
+func NewDefaultDirectBytesStartArray(initSize int) *DirectBytesStartArray {
+	return NewDirectBytesStartArray(initSize, NewCounter())
+}
+
+func (ba *DirectBytesStartArray) Clear() []int {
+	ba.bytesStart = nil
+	return ba.bytesStart
+}
+
+func (ba *DirectBytesStartArray) Grow() []int {
+	assert(ba.bytesStart != nil)
+	ba.bytesStart = GrowIntSlice(ba.bytesStart, len(ba.bytesStart)+1)
+	return ba.bytesStart
+}
+
+func (ba *DirectBytesStartArray) Init() []int {
+	ba.bytesStart = make([]int, Oversize(ba.initSize, NUM_BYTES_INT))
+	return ba.bytesStart
+}
+
+func (ba *DirectBytesStartArray) BytesUsed() Counter {
+	return ba.bytesUsed
 }

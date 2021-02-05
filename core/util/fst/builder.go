@@ -3,6 +3,7 @@ package fst
 import (
 	"fmt"
 	"github.com/jtejido/golucene/core/util"
+	"math"
 )
 
 const (
@@ -56,6 +57,11 @@ construction tweaks. Read parameter documentation carefully.
 
 ...
 */
+
+func NewDefaultBuilder(inputType InputType, outputs Outputs) *Builder {
+	return NewBuilder(inputType, 0, 0, true, true, int(math.MaxInt32), outputs, true, 15)
+}
+
 func NewBuilder(inputType InputType, minSuffixCount1, minSuffixCount2 int,
 	doShareSuffix, doShareNonSingletonNodes bool, shareMaxTailLength int,
 	outputs Outputs, allowArrayArcs bool, bytesPageBits int) *Builder {
@@ -308,15 +314,15 @@ func (b *Builder) Add(input *util.IntsRef, output interface{}) error {
 		var wordSuffix interface{}
 
 		if lastOutput != b.NO_OUTPUT {
-			commonOutputPrefix = b.fst.outputs.Common(output, lastOutput)
-			wordSuffix = b.fst.outputs.Subtract(lastOutput, commonOutputPrefix)
+			commonOutputPrefix = b.fst.Outputs.Common(output, lastOutput)
+			wordSuffix = b.fst.Outputs.Subtract(lastOutput, commonOutputPrefix)
 			parentNode.setLastOutput(input.Ints[input.Offset+idx-1], commonOutputPrefix)
 			node.prependOutput(wordSuffix)
 		} else {
 			commonOutputPrefix = NO_OUTPUT
 		}
 
-		output = b.fst.outputs.Subtract(output, commonOutputPrefix)
+		output = b.fst.Outputs.Subtract(output, commonOutputPrefix)
 	}
 
 	if b.lastInput.Length() == input.Length && prefixLenPlus1 == 1+input.Length {
@@ -504,10 +510,10 @@ func (n *UnCompiledNode) setLastOutput(labelToMatch int, newOutput interface{}) 
 /* pushes an output prefix forward onto all arcs */
 func (n *UnCompiledNode) prependOutput(outputPrefix interface{}) {
 	for arcIdx := 0; arcIdx < n.NumArcs; arcIdx++ {
-		n.Arcs[arcIdx].output = n.owner.fst.outputs.Add(outputPrefix, n.Arcs[arcIdx].output)
+		n.Arcs[arcIdx].output = n.owner.fst.Outputs.Add(outputPrefix, n.Arcs[arcIdx].output)
 	}
 
 	if n.IsFinal {
-		n.output = n.owner.fst.outputs.Add(outputPrefix, n.output)
+		n.output = n.owner.fst.Outputs.Add(outputPrefix, n.output)
 	}
 }

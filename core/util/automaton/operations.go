@@ -7,6 +7,10 @@ import (
 	"unicode"
 )
 
+const (
+	DEFAULT_MAX_DETERMINIZED_STATES = 10000
+)
+
 // Basic automata operations.
 
 /*
@@ -521,7 +525,7 @@ Split the code points in ranges, and merge overlapping states.
 
 Worst case complexity: exponential in number of states.
 */
-func determinize(a *Automaton) *Automaton {
+func determinize(a *Automaton, maxDeterminizedStates int) *Automaton {
 	if a.deterministic || a.numStates() <= 1 {
 		return a
 	}
@@ -591,6 +595,9 @@ func determinize(a *Automaton) *Automaton {
 				q, ok := newstate[hashKey]
 				if !ok {
 					q = b.createState()
+					if q >= maxDeterminizedStates {
+						panic("too complex to determinize")
+					}
 					p := statesSet.freeze(q)
 					// fmt.Printf("  make new state=%v -> %v accCount=%v\n", q, p, accCount)
 					worklist.PushBack(p)

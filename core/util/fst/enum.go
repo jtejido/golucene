@@ -30,7 +30,7 @@ func newFSTEnum(spi FSTEnumSPI, fst *FST) *FSTEnum {
 	arcs[0] = new(Arc)
 	fst.FirstArc(arcs[0])
 	outputs := make([]interface{}, 10)
-	outputs[0] = fst.outputs.NoOutput()
+	outputs[0] = fst.Outputs.NoOutput()
 
 	return &FSTEnum{
 		spi:       spi,
@@ -91,7 +91,7 @@ func (e *FSTEnum) pushFirst() (err error) {
 	assert(arc != nil)
 
 	for {
-		e.output[e.upto] = e.fst.outputs.Add(e.output[e.upto-1], arc.Output)
+		e.output[e.upto] = e.fst.Outputs.Add(e.output[e.upto-1], arc.Output)
 		if arc.Label == FST_END_LABEL {
 			// final node
 			break

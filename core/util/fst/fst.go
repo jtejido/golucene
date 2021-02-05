@@ -143,7 +143,7 @@ type FST struct {
 
 	startNode int64
 
-	outputs Outputs
+	Outputs Outputs
 
 	NO_OUTPUT interface{}
 	fstStore  FSTStore
@@ -164,7 +164,7 @@ func newFST(inputType InputType, outputs Outputs, bytesPageBits int) *FST {
 	bytes.WriteByte(0)
 	ans := &FST{
 		inputType: inputType,
-		outputs:   outputs,
+		Outputs:   outputs,
 		version:   VERSION_CURRENT,
 		bytes:     bytes,
 		NO_OUTPUT: outputs.NoOutput(),
@@ -182,7 +182,7 @@ func LoadFST(in util.DataInput, outputs Outputs) (fst *FST, err error) {
  *  control the size of the byte[] pages used to hold the FST bytes. */
 func loadFST3(in util.DataInput, outputs Outputs, fstStore FSTStore) (fst *FST, err error) {
 
-	fst = &FST{bytes: nil, fstStore: fstStore, outputs: outputs, startNode: -1}
+	fst = &FST{bytes: nil, fstStore: fstStore, Outputs: outputs, startNode: -1}
 
 	// NOTE: only reads most recent format; we don't have
 	// back-compat promise for FSTs (they are experimental):
@@ -250,11 +250,11 @@ func (t *FST) ramBytesUsed(arcs []*Arc) int64 {
 		for _, arc := range arcs {
 			if arc != nil {
 				size += ARC_SHALLOW_RAM_BYTES_USED
-				if arc.Output != nil && arc.Output != t.outputs.NoOutput() {
-					size += t.outputs.ramBytesUsed(arc.Output)
+				if arc.Output != nil && arc.Output != t.Outputs.NoOutput() {
+					size += t.Outputs.ramBytesUsed(arc.Output)
 				}
-				if arc.NextFinalOutput != nil && arc.NextFinalOutput != t.outputs.NoOutput() {
-					size += t.outputs.ramBytesUsed(arc.NextFinalOutput)
+				if arc.NextFinalOutput != nil && arc.NextFinalOutput != t.Outputs.NoOutput() {
+					size += t.Outputs.ramBytesUsed(arc.NextFinalOutput)
 				}
 			}
 		}
@@ -338,7 +338,7 @@ func (t *FST) EmptyOutput() interface{} {
 
 func (t *FST) setEmptyOutput(v interface{}) {
 	if t.emptyOutput != nil {
-		t.emptyOutput = t.outputs.merge(t.emptyOutput, v)
+		t.emptyOutput = t.Outputs.merge(t.emptyOutput, v)
 	} else {
 		t.emptyOutput = v
 	}
@@ -359,7 +359,7 @@ func (t *FST) Save(out util.DataOutput) (err error) {
 			if err == nil {
 				// serialize empty-string output:
 				ros := store.NewRAMOutputStreamBuffer()
-				err = t.outputs.writeFinalOutput(t.emptyOutput, ros)
+				err = t.Outputs.writeFinalOutput(t.emptyOutput, ros)
 
 				if err == nil {
 					emptyOutputBytes := make([]byte, ros.FilePointer())
@@ -469,7 +469,7 @@ func targetHasArcs(arc *Arc) bool {
 
 /* Serializes new node by appending its bytes to the end of the current []byte */
 func (t *FST) addNode(builder *Builder, nodeIn *UnCompiledNode) (int64, error) {
-	t.NO_OUTPUT = t.outputs.NoOutput()
+	t.NO_OUTPUT = t.Outputs.NoOutput()
 	// fmt.Printf("FST.addNode pos=%v numArcs=%v\n", t.bytes.position(), nodeIn.NumArcs)
 	if nodeIn.NumArcs == 0 {
 		if nodeIn.IsFinal {
@@ -541,7 +541,7 @@ func (t *FST) addNode(builder *Builder, nodeIn *UnCompiledNode) (int64, error) {
 		// 	t.outputs.outputToString(arc.output))
 
 		if arc.output != NO_OUTPUT {
-			if err := t.outputs.Write(arc.output, builder.bytes); err != nil {
+			if err := t.Outputs.Write(arc.output, builder.bytes); err != nil {
 				return 0, err
 			}
 
@@ -549,7 +549,7 @@ func (t *FST) addNode(builder *Builder, nodeIn *UnCompiledNode) (int64, error) {
 
 		if arc.nextFinalOutput != NO_OUTPUT {
 			// fmt.Println("    write final output")
-			if err := t.outputs.writeFinalOutput(arc.nextFinalOutput, builder.bytes); err != nil {
+			if err := t.Outputs.writeFinalOutput(arc.nextFinalOutput, builder.bytes); err != nil {
 				return 0, err
 			}
 		}
@@ -694,7 +694,7 @@ func (t *FST) writeArrayWithGaps(builder *Builder, nodeIn *UnCompiledNode, fixed
 }
 
 func (t *FST) FirstArc(arc *Arc) *Arc {
-	t.NO_OUTPUT = t.outputs.NoOutput()
+	t.NO_OUTPUT = t.Outputs.NoOutput()
 	if t.emptyOutput != nil {
 		arc.flags = FST_BIT_FINAL_ARC | FST_BIT_LAST_ARC
 		arc.NextFinalOutput = t.emptyOutput
@@ -758,10 +758,10 @@ func (t *FST) readLastTargetArc(follow, arc *Arc, in BytesReader) (*Arc, error) 
 			// skip this arc:
 			t.readLabel(in)
 			if arc.flag(FST_BIT_ARC_HAS_OUTPUT) {
-				t.outputs.SkipOutput(in)
+				t.Outputs.SkipOutput(in)
 			}
 			if arc.flag(FST_BIT_ARC_HAS_FINAL_OUTPUT) {
-				t.outputs.SkipFinalOutput(in)
+				t.Outputs.SkipFinalOutput(in)
 			}
 			if arc.flag(FST_BIT_STOP_NODE) {
 			} else if arc.flag(FST_BIT_TARGET_NEXT) {
@@ -1011,21 +1011,21 @@ func (t *FST) readArc(arc *Arc, in BytesReader) (ans *Arc, err error) {
 	}
 
 	if arc.flag(FST_BIT_ARC_HAS_OUTPUT) {
-		arc.Output, err = t.outputs.Read(in)
+		arc.Output, err = t.Outputs.Read(in)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		arc.Output = t.outputs.NoOutput()
+		arc.Output = t.Outputs.NoOutput()
 	}
 
 	if arc.flag(FST_BIT_ARC_HAS_FINAL_OUTPUT) {
-		arc.NextFinalOutput, err = t.outputs.ReadFinalOutput(in)
+		arc.NextFinalOutput, err = t.Outputs.ReadFinalOutput(in)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		arc.NextFinalOutput = t.outputs.NoOutput()
+		arc.NextFinalOutput = t.Outputs.NoOutput()
 	}
 
 	if arc.flag(FST_BIT_STOP_NODE) {
@@ -1274,13 +1274,13 @@ func (t *FST) seekToNextNode(in BytesReader) error {
 		}
 
 		if hasFlag(flags, FST_BIT_ARC_HAS_OUTPUT) {
-			if err = t.outputs.SkipOutput(in); err != nil {
+			if err = t.Outputs.SkipOutput(in); err != nil {
 				return err
 			}
 		}
 
 		if hasFlag(flags, FST_BIT_ARC_HAS_FINAL_OUTPUT) {
-			if err = t.outputs.SkipFinalOutput(in); err != nil {
+			if err = t.Outputs.SkipFinalOutput(in); err != nil {
 				return err
 			}
 		}

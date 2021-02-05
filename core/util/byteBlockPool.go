@@ -184,6 +184,19 @@ func (a *ByteAllocatorImpl) allocate() []byte {
 	return make([]byte, a.blockSize)
 }
 
+/** A simple {@link Allocator} that never recycles. */
+type DirectAllocator struct {
+	*ByteAllocatorImpl
+}
+
+func NewDirectAllocator() *DirectAllocator {
+	return &DirectAllocator{
+		ByteAllocatorImpl: newByteAllocator(BYTE_BLOCK_SIZE),
+	}
+}
+
+func (alloc *DirectAllocator) recycle(blocks [][]byte) {}
+
 /* A simple Allocator that never recycles, but tracks how much total RAM is in use. */
 type DirectTrackingAllocator struct {
 	*ByteAllocatorImpl

@@ -27,9 +27,13 @@ func (ra *RunAutomaton) charClass(c int) int {
 	return findIndex(c, ra.points)
 }
 
-// Constructs a new RunAutomaton from a deterministic Automaton.
 func newRunAutomaton(a *Automaton, maxInterval int, tablesize bool) *RunAutomaton {
-	a = determinize(a)
+	return newRunAutomatonWithMaxDeterminedStates(a, maxInterval, tablesize, DEFAULT_MAX_DETERMINIZED_STATES)
+}
+
+// Constructs a new RunAutomaton from a deterministic Automaton.
+func newRunAutomatonWithMaxDeterminedStates(a *Automaton, maxInterval int, tablesize bool, maxDeterminedStates int) *RunAutomaton {
+	a = determinize(a, maxDeterminedStates)
 	size := a.numStates()
 	if size < 1 {
 		size = 1
@@ -84,7 +88,41 @@ type CharacterRunAutomaton struct {
 }
 
 func NewCharacterRunAutomaton(a *Automaton) *CharacterRunAutomaton {
+	return NewCharacterRunAutomatonWithMaxDeterminedStates(a, DEFAULT_MAX_DETERMINIZED_STATES)
+}
+
+func NewCharacterRunAutomatonWithMaxDeterminedStates(a *Automaton, maxDeterminizedStates int) *CharacterRunAutomaton {
 	ans := &CharacterRunAutomaton{}
-	ans.RunAutomaton = newRunAutomaton(a, unicode.MaxRune, false)
+	ans.RunAutomaton = newRunAutomatonWithMaxDeterminedStates(a, unicode.MaxRune, false, maxDeterminizedStates)
 	return ans
+}
+
+func (ca *CharacterRunAutomaton) Run(s string) bool {
+	p := ca.initial
+	l := len(s)
+	for i, cp := 0, 0; i < l; i++ {
+		cp = int(s[i])
+		p = ca.step(p, cp)
+
+		if p == -1 {
+			return false
+		}
+	}
+	return ca.accept[p]
+}
+
+/**
+ * Returns true if the given string is accepted by this automaton
+ */
+func (ca *CharacterRunAutomaton) RunChars(s []rune) {
+	p := ca.initial
+	l := len(s)
+	for i, cp := 0, 0; i < l; i++ {
+		cp = int(s[i])
+		p = ca.step(p, cp)
+		if p == -1 {
+			return false
+		}
+	}
+	return ca.accept[p]
 }

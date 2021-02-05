@@ -76,6 +76,35 @@ func (a *CharsRef) CharAt(index int) rune {
 	return a.Chars[a.Offset+index]
 }
 
+type CharsRefs []*CharsRef
+
+func (br CharsRefs) Len() int {
+	return len(br)
+}
+
+func (br CharsRefs) Less(i, j int) bool {
+	aChars, bChars := br[i], br[j]
+	aLen, bLen := aChars.Length, bChars.Length
+
+	for i, v := range aChars.Chars {
+		if i >= bLen {
+			break
+		}
+		if int(v) < int(bChars.Chars[i]) {
+			return true
+		} else if int(v) > int(bChars.Chars[i]) {
+			return false
+		}
+	}
+
+	// One is a prefix of the other, or, they are equal:
+	return aLen < bLen
+}
+
+func (br CharsRefs) Swap(i, j int) {
+	br[i], br[j] = br[j], br[i]
+}
+
 // util/CharsRefBuilderBuilder.java
 
 type CharsRefBuilder struct {

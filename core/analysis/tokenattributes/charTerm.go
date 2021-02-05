@@ -26,8 +26,8 @@ type CharTermAttribute interface {
 	// argument. If argument is "", then the three characters "nil" are
 	// appended.
 	AppendString(string) CharTermAttribute
-
 	AppendCharsRef(*util.CharsRef) CharTermAttribute
+	// AppendCharTermAttribute(CharTermAttribute) CharTermAttribute
 }
 
 const MIN_BUFFER_SIZE = 10

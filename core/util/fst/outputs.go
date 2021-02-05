@@ -279,17 +279,17 @@ func GetFSTOutput(fst *FST, input []byte) (output interface{}, err error) {
 	arc := fst.FirstArc(&Arc{})
 
 	// Accumulate output as we go
-	output = fst.outputs.NoOutput()
+	output = fst.Outputs.NoOutput()
 	for _, v := range input {
 		ret, err := fst.FindTargetArc(int(v), arc, arc, fstReader)
 		if ret == nil || err != nil {
 			return ret, err
 		}
-		output = fst.outputs.Add(output, arc.Output)
+		output = fst.Outputs.Add(output, arc.Output)
 	}
 
 	if arc.IsFinal() {
-		return fst.outputs.Add(output, arc.NextFinalOutput), nil
+		return fst.Outputs.Add(output, arc.NextFinalOutput), nil
 	} else {
 		return nil, nil
 	}
