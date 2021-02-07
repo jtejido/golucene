@@ -16,7 +16,7 @@ import (
  * and a ConjunctionScorer.
  */
 type MinShouldMatchSumScorer struct {
-	*abstractScorer
+	abstractScorer
 	numScorers, mm, sortedSubScorersIdx, nrInHeap, doc, nrMatchers int
 	sortedSubScorers, subScorers, mmStack                          []Scorer
 	score                                                          float64
@@ -44,7 +44,7 @@ func newMinShouldMatchSumScorer(weight Weight, subScorers []Scorer, minimumNrMat
 		sortedSubScorersIdx: minimumNrMatchers - 1,
 		coord:               coord,
 	}
-	ans.abstractScorer = newScorer(ans, weight)
+	ans.weight = weight
 
 	if minimumNrMatchers <= 0 {
 		return nil, fmt.Errorf("Minimum nr of matchers must be positive")

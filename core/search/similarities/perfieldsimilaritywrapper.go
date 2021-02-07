@@ -6,7 +6,7 @@ import (
 )
 
 type PerFieldSimilarityWrapperSPI interface {
-	Get(name string) search.Similarity
+	Get(name string) Similarity
 }
 
 /*
@@ -29,18 +29,18 @@ func (wrapper *PerFieldSimilarityWrapper) ComputeNorm(state *index.FieldInvertSt
 }
 
 func (wrapper *PerFieldSimilarityWrapper) computeWeight(queryBoost float32,
-	collectionStats search.CollectionStatistics, termStats ...search.TermStatistics) search.SimWeight {
+	collectionStats search.CollectionStatistics, termStats ...search.TermStatistics) SimWeight {
 	sim := wrapper.spi.Get(collectionStats.Field())
 	return &PerFieldSimWeight{sim, sim.ComputeWeight(queryBoost, collectionStats, termStats...)}
 }
 
-func (wrapper *PerFieldSimilarityWrapper) simScorer(w search.SimWeight, ctx *index.AtomicReaderContext) (ss search.SimScorer, err error) {
+func (wrapper *PerFieldSimilarityWrapper) simScorer(w SimWeight, ctx *index.AtomicReaderContext) (ss SimScorer, err error) {
 	panic("not implemented yet")
 }
 
 type PerFieldSimWeight struct {
-	delegate       search.Similarity
-	delegateWeight search.SimWeight
+	delegate       Similarity
+	delegateWeight SimWeight
 }
 
 func (w *PerFieldSimWeight) ValueForNormalization() float32 {

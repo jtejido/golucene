@@ -16,8 +16,9 @@ import (
 
 func main() {
 	util.SetDefaultInfoStream(util.NewPrintStreamInfoStream(os.Stdout))
+
 	index.DefaultSimilarity = func() index.Similarity {
-		return similarities.NewDefaultSimilarity()
+		return similarities.NewDefaultBM25Similarity()
 	}
 
 	directory, _ := store.OpenFSDirectory("test_index")
@@ -33,22 +34,6 @@ func main() {
 	d2.Add(document.NewTextFieldFromString("body", "test 2 Lorem ipsum dolor sit amet, consectetur adipiscing elit.Sed vitae ante quis sem iaculis hendrerit.Interdum et malesuada fames ac ante ipsum primis in faucibus.Donec at luctus leo.Aenean eget tempor sem.Aliquam fermentum eleifend pretium.Sed fringilla, velit id mattis mattis, nisi elit consectetur sapien, id suscipit massa sem vitae justo", document.STORE_YES))
 	writer.AddDocument(d2.Fields())
 
-	d3 := document.NewDocument()
-	d3.Add(document.NewTextFieldFromString("body", "test 3 Lorem ipsum dolor sit amet, consectetur adipiscing elit.Sed vitae ante quis sem iaculis hendrerit.Interdum et malesuada fames ac ante ipsum primis in faucibus.Donec at luctus leo.Aenean eget tempor sem.Aliquam fermentum eleifend pretium.Sed fringilla, velit id mattis mattis, nisi elit consectetur sapien, id suscipit massa sem vitae justo", document.STORE_YES))
-	writer.AddDocument(d3.Fields())
-
-	d4 := document.NewDocument()
-	d4.Add(document.NewTextFieldFromString("body", "test 4 Lorem ipsum dolor sit amet, consectetur adipiscing elit.Sed vitae ante quis sem iaculis hendrerit.Interdum et malesuada fames ac ante ipsum primis in faucibus.Donec at luctus leo.Aenean eget tempor sem.Aliquam fermentum eleifend pretium.Sed fringilla, velit id mattis mattis, nisi elit consectetur sapien, id suscipit massa sem vitae justo", document.STORE_YES))
-	writer.AddDocument(d4.Fields())
-
-	d5 := document.NewDocument()
-	d5.Add(document.NewTextFieldFromString("body", "test 5 Lorem ipsum dolor sit amet, consectetur adipiscing elit.Sed vitae ante quis sem iaculis hendrerit.Interdum et malesuada fames ac ante ipsum primis in faucibus.Donec at luctus leo.Aenean eget tempor sem.Aliquam fermentum eleifend pretium.Sed fringilla, velit id mattis mattis, nisi elit consectetur sapien, id suscipit massa sem vitae justo", document.STORE_YES))
-	writer.AddDocument(d5.Fields())
-
-	d6 := document.NewDocument()
-	d6.Add(document.NewTextFieldFromString("body", "test 6 Lorem ipsum dolor sit amet, consectetur adipiscing elit.Sed vitae ante quis sem iaculis hendrerit.Interdum et malesuada fames ac ante ipsum primis in faucibus.Donec at luctus leo.Aenean eget tempor sem.Aliquam fermentum eleifend pretium.Sed fringilla, velit id mattis mattis, nisi elit consectetur sapien, id suscipit massa sem vitae justo", document.STORE_YES))
-	writer.AddDocument(d6.Fields())
-
 	writer.Close() // ensure index is written
 
 	reader, _ := index.OpenDirectoryReader(directory)
@@ -58,7 +43,7 @@ func main() {
 
 	var q search.Query
 	var err error
-	if q, err = parser.Parse("test. 1"); err != nil {
+	if q, err = parser.Parse(`test OR 1`); err != nil {
 		fmt.Printf("error: %s", err.Error())
 	}
 

@@ -26,7 +26,7 @@ func newChunkState(posEnum model.DocsAndPositionsEnum, offset int32) *ChunkState
 }
 
 type ExactPhraseScorer struct {
-	*abstractScorer
+	abstractScorer
 	endMinus1, gen, docID, freq int
 	counts, gens                []int
 	cost                        int64
@@ -50,7 +50,7 @@ func newExactPhraseScorer(weight Weight, postings []*PostingsAndFreq, docScorer 
 	for i := 0; i < len(postings); i++ {
 		ans.chunkStates[i] = newChunkState(postings[i].postings, -postings[i].position)
 	}
-	ans.abstractScorer = newScorer(ans, weight)
+	ans.weight = weight
 	return ans, nil
 }
 

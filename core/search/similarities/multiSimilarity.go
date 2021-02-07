@@ -3,40 +3,32 @@ package similarities
 import (
 	"github.com/jtejido/golucene/core/index"
 	"github.com/jtejido/golucene/core/search"
+	"github.com/jtejido/golucene/core/util"
 )
 
 type MultiSimilarity struct {
-	spi  search.Similarity
-	sims []search.Similarity
+	*similarityImpl
+	sims []Similarity
 }
 
-func newMultiSimilarity(spi search.Similarity, sims []search.Similarity) *MultiSimilarity {
-	ans := &MultiSimilarity{spi: spi, sims: sims}
-	return ans
-}
-
-func (ms *MultiSimilarity) Coord(overlap, maxOverlap int) float32 {
-	return 1.
-}
-
-func (ms *MultiSimilarity) QueryNorm(sumOfSquaredWeights float32) float32 {
-	return 1.
+func NewMultiSimilarity(sims []Similarity) *MultiSimilarity {
+	return &MultiSimilarity{sims: sims}
 }
 
 func (ms *MultiSimilarity) ComputeNorm(state *index.FieldInvertState) int64 {
 	return ms.sims[0].ComputeNorm(state)
 }
 
-func (ms *MultiSimilarity) ComputeWeight(queryBoost float32, collectionStats search.CollectionStatistics, termStats ...search.TermStatistics) search.SimWeight {
-	subStats := make([]search.SimWeight, len(ms.sims))
+func (ms *MultiSimilarity) ComputeWeight(queryBoost float32, collectionStats search.CollectionStatistics, termStats ...search.TermStatistics) SimWeight {
+	subStats := make([]SimWeight, len(ms.sims))
 	for i := 0; i < len(subStats); i++ {
 		subStats[i] = ms.sims[i].ComputeWeight(queryBoost, collectionStats, termStats...)
 	}
 	return newMultiStats(subStats)
 }
 
-func (ms *MultiSimilarity) SimScorer(stats search.SimWeight, ctx *index.AtomicReaderContext) (ss search.SimScorer, err error) {
-	subScorers := make([]search.SimScorer, len(ms.sims))
+func (ms *MultiSimilarity) SimScorer(stats SimWeight, ctx *index.AtomicReaderContext) (ss SimScorer, err error) {
+	subScorers := make([]SimScorer, len(ms.sims))
 	for i := 0; i < len(subScorers); i++ {
 		subScorers[i], err = ms.sims[i].SimScorer(stats.(*multiStats).subStats[i], ctx)
 
@@ -44,16 +36,15 @@ func (ms *MultiSimilarity) SimScorer(stats search.SimWeight, ctx *index.AtomicRe
 			return
 		}
 	}
-	return newMultiSimScorer(ms, subScorers), nil
+	return newMultiSimScorer(subScorers), nil
 }
 
 type multiSimScorer struct {
-	owner      search.Similarity
-	subScorers []search.SimScorer
+	subScorers []SimScorer
 }
 
-func newMultiSimScorer(owner search.Similarity, subScorers []search.SimScorer) *multiSimScorer {
-	return &multiSimScorer{owner, subScorers}
+func newMultiSimScorer(subScorers []SimScorer) *multiSimScorer {
+	return &multiSimScorer{subScorers}
 }
 
 func (ss *multiSimScorer) Score(doc int, freq float32) float32 {
@@ -72,11 +63,19 @@ func (ss *multiSimScorer) Explain(doc int, freq search.Explanation) search.Expla
 	return expl
 }
 
-type multiStats struct {
-	subStats []search.SimWeight
+func (ss *multiSimScorer) ComputeSlopFactor(distance int) float32 {
+	return ss.subScorers[0].ComputeSlopFactor(distance)
 }
 
-func newMultiStats(subStats []search.SimWeight) *multiStats {
+func (ss *multiSimScorer) ComputePayloadFactor(doc, start, end int, payload *util.BytesRef) float32 {
+	return ss.subScorers[0].ComputePayloadFactor(doc, start, end, payload)
+}
+
+type multiStats struct {
+	subStats []SimWeight
+}
+
+func newMultiStats(subStats []SimWeight) *multiStats {
 	return &multiStats{subStats}
 }
 
@@ -92,8 +91,4 @@ func (stats *multiStats) Normalize(queryNorm float32, topLevelBoost float32) {
 	for _, stat := range stats.subStats {
 		stat.Normalize(queryNorm, topLevelBoost)
 	}
-}
-
-func (stats *multiStats) Field() string {
-	return ""
 }

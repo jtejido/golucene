@@ -8,12 +8,10 @@ import (
 )
 
 // search/Scorer.java
-
 type Scorer interface {
 	DocsEnum
-	IScorer
+	Score() (float32, error)
 	Weight() Weight
-	// ScoreAndCollect(c Collector) error
 }
 
 type IScorer interface {
@@ -26,35 +24,12 @@ type ScorerSPI interface {
 }
 
 type abstractScorer struct {
-	spi ScorerSPI
-	// index.DocsEnum
-	// IScorer
-	/** the Scorer's parent Weight. in some cases this may be null */
-	// TODO can we clean this up?
 	weight Weight
-}
-
-func newScorer(spi ScorerSPI, w Weight) *abstractScorer {
-	return &abstractScorer{spi: spi, weight: w}
 }
 
 func (s *abstractScorer) Weight() Weight {
 	return s.weight
 }
-
-/** Scores and collects all matching documents.
- * @param collector The collector to which all matching documents are passed.
- */
-// func (s *abstractScorer) ScoreAndCollect(c Collector) (err error) {
-// 	assert(s.spi.DocId() == -1) // not started
-// 	c.SetScorer(s.spi.(Scorer))
-// 	doc, err := s.spi.NextDoc()
-// 	for doc != NO_MORE_DOCS && err == nil {
-// 		c.Collect(doc)
-// 		doc, err = s.spi.NextDoc()
-// 	}
-// 	return
-// }
 
 func assert(ok bool) {
 	if !ok {
@@ -79,18 +54,18 @@ the Scorer returned by Weight.Scorer().
 */
 type BulkScorer interface {
 	ScoreAndCollect(Collector) error
-	BulkScorerImplSPI
+	ScoreAndCollectUpto(Collector, int) (bool, error)
 }
 
-type BulkScorerImplSPI interface {
+type bulkScorerImplSPI interface {
 	ScoreAndCollectUpto(Collector, int) (bool, error)
 }
 
 type BulkScorerImpl struct {
-	spi BulkScorerImplSPI
+	spi bulkScorerImplSPI
 }
 
-func newBulkScorer(spi BulkScorerImplSPI) *BulkScorerImpl {
+func newBulkScorer(spi bulkScorerImplSPI) *BulkScorerImpl {
 	return &BulkScorerImpl{spi}
 }
 

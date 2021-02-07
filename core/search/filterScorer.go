@@ -1,7 +1,7 @@
 package search
 
 type FilterScorer struct {
-	*abstractScorer
+	abstractScorer
 	in Scorer
 }
 
@@ -10,7 +10,7 @@ func newFilterScorer(in Scorer) *FilterScorer {
 		in: in,
 	}
 
-	ans.abstractScorer = newScorer(ans, in.Weight())
+	ans.weight = in.Weight()
 	return ans
 }
 

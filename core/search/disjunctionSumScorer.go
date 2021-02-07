@@ -4,19 +4,28 @@ package search
  * This Scorer implements {@link Scorer#advance(int)} and uses advance() on the given Scorers.
  */
 type DisjunctionSumScorer struct {
-	*DisjunctionScorer
+	DisjunctionScorer
 	score float64
 	coord []float32
 }
 
 func newDisjunctionSumScorer(weight Weight, subScorers []Scorer, coord []float32) (*DisjunctionSumScorer, error) {
 	ans := &DisjunctionSumScorer{
+		DisjunctionScorer: DisjunctionScorer{
+			doc:        -1,
+			freq:       -1,
+			subScorers: subScorers,
+			numScorers: len(subScorers),
+		},
 		coord: coord,
 	}
 
-	var err error
-	ans.DisjunctionScorer, err = newDisjunctionScorer(ans, weight, subScorers)
-	return ans, err
+	ans.spi = ans
+	ans.weight = weight
+
+	ans.heapify()
+
+	return ans, nil
 }
 
 func (s *DisjunctionSumScorer) reset() {
@@ -24,6 +33,7 @@ func (s *DisjunctionSumScorer) reset() {
 }
 
 func (s *DisjunctionSumScorer) accum(subScorer Scorer) error {
+
 	sc, err := subScorer.Score()
 	if err != nil {
 		return err

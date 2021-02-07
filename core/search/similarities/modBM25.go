@@ -5,6 +5,8 @@ import (
 	"math"
 )
 
+var _ Similarity = (*ModBM25Similarity)(nil)
+
 /**
  * ModBM25 is a modified version of BM25 that ensures negative IDF don't violate Term-Frequency, Length Normalization and
  * TF-LENGTH Constraints by using Robertson-Sparck Idf.
@@ -12,9 +14,10 @@ import (
  * The implementation is based on the paper by Fang Et al.,
  * @see http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.59.1189&rep=rep1&type=pdf
  *
+ * @lucene.experimental(jtejido)
  */
 type ModBM25Similarity struct {
-	*ProbabilitySimilarity
+	baseBM25Similarity
 }
 
 func NewDefaultModBM25Similarity() *ModBM25Similarity {
@@ -24,7 +27,11 @@ func NewDefaultModBM25Similarity() *ModBM25Similarity {
 
 func NewModBM25Similarity(k1, b float32, discountOverlaps bool) *ModBM25Similarity {
 	ans := new(ModBM25Similarity)
-	ans.ProbabilitySimilarity = newProbabilitySimilarity(ans, k1, b, discountOverlaps)
+	ans.k1 = k1
+	ans.b = b
+	ans.discountOverlaps = discountOverlaps
+	ans.spi = ans
+	norm_table = ans.buildNormTable()
 	return ans
 }
 

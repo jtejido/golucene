@@ -6,14 +6,14 @@ import (
 
 /** Scorer for conjunctions, sets of queries, all of which are required. */
 type ConjunctionScorer struct {
-	*abstractScorer
+	abstractScorer
 	lastDoc      int
-	docsAndFreqs []*DocsAndFreqs
-	lead         *DocsAndFreqs
+	docsAndFreqs []DocsAndFreqs
+	lead         DocsAndFreqs
 	coord        float32
 }
 
-type DocsAndFreqsSorter []*DocsAndFreqs
+type DocsAndFreqsSorter []DocsAndFreqs
 
 func (s DocsAndFreqsSorter) Len() int      { return len(s) }
 func (s DocsAndFreqsSorter) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
@@ -29,12 +29,12 @@ func newConjunctionScorerWithCoord(weight Weight, scorers []Scorer, coord float3
 	ans := &ConjunctionScorer{
 		lastDoc:      -1,
 		coord:        coord,
-		docsAndFreqs: make([]*DocsAndFreqs, len(scorers)),
+		docsAndFreqs: make([]DocsAndFreqs, len(scorers)),
 	}
-	ans.abstractScorer = newScorer(ans, weight)
+	ans.weight = weight
 
 	for i := 0; i < len(scorers); i++ {
-		ans.docsAndFreqs[i] = newDocsAndFreqs(scorers[i])
+		ans.docsAndFreqs[i] = docsAndFreqs(scorers[i])
 	}
 
 	util.TimSort(DocsAndFreqsSorter(ans.docsAndFreqs))
@@ -131,8 +131,8 @@ type DocsAndFreqs struct {
 	doc    int
 }
 
-func newDocsAndFreqs(scorer Scorer) *DocsAndFreqs {
-	return &DocsAndFreqs{
+func docsAndFreqs(scorer Scorer) DocsAndFreqs {
+	return DocsAndFreqs{
 		scorer: scorer,
 		cost:   scorer.Cost(),
 	}

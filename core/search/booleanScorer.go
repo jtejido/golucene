@@ -214,7 +214,7 @@ func (s *BooleanScorer) String() string {
 }
 
 type FakeScorer struct {
-	*abstractScorer
+	abstractScorer
 	score float32
 	doc   int
 	freq  int
@@ -225,7 +225,7 @@ func newFakeScorer() *FakeScorer {
 		doc:  -1,
 		freq: -1,
 	}
-	ans.abstractScorer = newScorer(ans, nil)
+	ans.weight = nil
 	return ans
 }
 

@@ -20,7 +20,7 @@ type iDisjunctionScorer interface {
  * Base class for Scorers that score disjunctions.
  */
 type DisjunctionScorer struct {
-	*abstractScorer
+	abstractScorer
 	spi                   iDisjunctionScorer
 	subScorers            []Scorer
 	numScorers, doc, freq int
@@ -34,7 +34,7 @@ func newDisjunctionScorer(spi iDisjunctionScorer, weight Weight, subScorers []Sc
 		subScorers: subScorers,
 		numScorers: len(subScorers),
 	}
-	ans.abstractScorer = newScorer(ans, weight)
+	ans.weight = weight
 
 	ans.heapify()
 

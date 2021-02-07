@@ -5,46 +5,49 @@ import (
 	"github.com/jtejido/golucene/core/codec/spi"
 	"github.com/jtejido/golucene/core/index"
 	"github.com/jtejido/golucene/core/search"
+	"github.com/jtejido/golucene/core/util"
 )
 
-// search/similarities/TFIDFSimilarity.java
-
-type ITFIDFSimilarity interface {
-	BaseSimilarity
-	/** Computes a score factor based on a term or phrase's frequency in a
-	 * document.  This value is multiplied by the {@link #idf(long, long)}
-	 * factor for each term in the query and these products are then summed to
-	 * form the initial score for a document.
-	 *
-	 * <p>Terms and phrases repeated in a document indicate the topic of the
-	 * document, so implementations of this method usually return larger values
-	 * when <code>freq</code> is large, and smaller values when <code>freq</code>
-	 * is small.
-	 *
-	 * @param freq the frequency of a term within a document
-	 * @return a score factor based on a term's within-document frequency
-	 */
-	tf(freq float32) float32
+type TFIDFSimilarity interface {
+	Similarity
+	tf(float32) float32
+	idf(docFreq, numDocs int64) float32
+	lengthNorm(*index.FieldInvertState) float32
+	encodeNormValue(float32) int64
+	decodeNormValue(int64) float32
+	sloppyFreq(int) float32
+	scorePayload(doc, start, end int, payload *util.BytesRef) float32
 }
 
-type TFIDFSimilarity struct {
-	SimilarityBase
-	spi ITFIDFSimilarity
+type tfIdfSimilaritySPI interface {
+	tf(float32) float32
+	idf(docFreq, numDocs int64) float32
+	lengthNorm(*index.FieldInvertState) float32
+	encodeNormValue(float32) int64
+	decodeNormValue(int64) float32
+	sloppyFreq(int) float32
+	scorePayload(doc, start, end int, payload *util.BytesRef) float32
 }
 
-func newTFIDFSimilarity(spi ITFIDFSimilarity) *TFIDFSimilarity {
-	return &TFIDFSimilarity{spi: spi}
+type TFIDFSimilarityImpl struct {
+	similarityImpl
+	owner tfIdfSimilaritySPI
 }
 
-func (ts *TFIDFSimilarity) idfExplainTerm(collectionStats search.CollectionStatistics, termStats search.TermStatistics) search.Explanation {
+func NewTFIDFSimilarity(owner TFIDFSimilarity) *TFIDFSimilarityImpl {
+	return &TFIDFSimilarityImpl{owner: owner}
+}
+
+func (ts *TFIDFSimilarityImpl) idfExplainTerm(collectionStats search.CollectionStatistics, termStats search.TermStatistics) search.Explanation {
 	df, max := termStats.DocFreq, collectionStats.MaxDoc()
-	idf := ts.spi.idf(df, max)
+	idf := ts.owner.idf(df, max)
 	return search.NewExplanation(idf, fmt.Sprintf("idf(docFreq=%v, maxDocs=%v)", df, max))
 }
 
-func (ts *TFIDFSimilarity) idfExplainPhrase(collectionStats search.CollectionStatistics, termStats []search.TermStatistics) search.Explanation {
+func (ts *TFIDFSimilarityImpl) idfExplainPhrase(collectionStats search.CollectionStatistics, termStats []search.TermStatistics) search.Explanation {
 	details := make([]search.Explanation, len(termStats))
 	var idf float32 = 0
+
 	for i, stat := range termStats {
 		details[i] = ts.idfExplainTerm(collectionStats, stat)
 		idf += details[i].(*search.ExplanationImpl).Value()
@@ -54,11 +57,11 @@ func (ts *TFIDFSimilarity) idfExplainPhrase(collectionStats search.CollectionSta
 	return ans
 }
 
-func (ts *TFIDFSimilarity) ComputeNorm(state *index.FieldInvertState) int64 {
-	return ts.spi.encodeNormValue(ts.spi.lengthNorm(state))
+func (ts *TFIDFSimilarityImpl) ComputeNorm(state *index.FieldInvertState) int64 {
+	return ts.owner.encodeNormValue(ts.owner.lengthNorm(state))
 }
 
-func (ts *TFIDFSimilarity) ComputeWeight(queryBoost float32, collectionStats search.CollectionStatistics, termStats ...search.TermStatistics) search.SimWeight {
+func (ts *TFIDFSimilarityImpl) ComputeWeight(queryBoost float32, collectionStats search.CollectionStatistics, termStats ...search.TermStatistics) SimWeight {
 	var idf search.Explanation
 	if len(termStats) == 1 {
 		idf = ts.idfExplainTerm(collectionStats, termStats[0])
@@ -68,36 +71,45 @@ func (ts *TFIDFSimilarity) ComputeWeight(queryBoost float32, collectionStats sea
 	return newIDFStats(collectionStats.Field(), idf, queryBoost)
 }
 
-func (ts *TFIDFSimilarity) SimScorer(stats search.SimWeight, ctx *index.AtomicReaderContext) (ss search.SimScorer, err error) {
+func (ts *TFIDFSimilarityImpl) SimScorer(stats SimWeight, ctx *index.AtomicReaderContext) (ss SimScorer, err error) {
 	idfstats := stats.(*idfStats)
 	ndv, err := ctx.Reader().(index.AtomicReader).NormValues(idfstats.field)
 	if err != nil {
 		return nil, err
 	}
+
 	return newTFIDFSimScorer(ts, idfstats, ndv), nil
 }
 
 type tfIDFSimScorer struct {
-	owner       *TFIDFSimilarity
+	owner       *TFIDFSimilarityImpl
 	stats       *idfStats
 	weightValue float32
 	norms       spi.NumericDocValues
 }
 
-func newTFIDFSimScorer(owner *TFIDFSimilarity, stats *idfStats, norms spi.NumericDocValues) *tfIDFSimScorer {
-	return &tfIDFSimScorer{owner, stats, stats.value, norms}
+func newTFIDFSimScorer(owner *TFIDFSimilarityImpl, stats *idfStats, norms spi.NumericDocValues) *tfIDFSimScorer {
+	return &tfIDFSimScorer{owner: owner, stats: stats, weightValue: stats.value, norms: norms}
 }
 
 func (ss *tfIDFSimScorer) Score(doc int, freq float32) float32 {
-	raw := ss.owner.spi.tf(freq) * ss.weightValue // compute tf(f)*weight
+	raw := ss.owner.owner.tf(freq) * ss.weightValue // compute tf(f)*weight
 	if ss.norms == nil {
 		return raw
 	}
-	return raw * ss.owner.spi.decodeNormValue(ss.norms(doc)) // normalize for field
+	return raw * ss.owner.owner.decodeNormValue(ss.norms(doc)) // normalize for field
 }
 
 func (ss *tfIDFSimScorer) Explain(doc int, freq search.Explanation) search.Explanation {
 	return ss.owner.explainScore(doc, freq, ss.stats, ss.norms)
+}
+
+func (ss *tfIDFSimScorer) ComputeSlopFactor(distance int) float32 {
+	return ss.owner.owner.sloppyFreq(distance)
+}
+
+func (ss *tfIDFSimScorer) ComputePayloadFactor(doc, start, end int, payload *util.BytesRef) float32 {
+	return ss.owner.owner.scorePayload(doc, start, end, payload)
 }
 
 /** Collection statistics for the TF-IDF model. The only statistic of interest
@@ -118,7 +130,7 @@ func newIDFStats(field string, idf search.Explanation, queryBoost float32) *idfS
 		field:       field,
 		idf:         idf,
 		queryBoost:  queryBoost,
-		queryWeight: idf.(*search.ExplanationImpl).Value() * queryBoost, // compute query weight
+		queryWeight: idf.Value() * queryBoost, // compute query weight
 	}
 }
 
@@ -137,7 +149,7 @@ func (stats *idfStats) Field() string {
 	return stats.field
 }
 
-func (ss *TFIDFSimilarity) explainScore(doc int, freq search.Explanation,
+func (ss *TFIDFSimilarityImpl) explainScore(doc int, freq search.Explanation,
 	stats *idfStats, norms spi.NumericDocValues) search.Explanation {
 
 	// explain query weight
@@ -153,12 +165,12 @@ func (ss *TFIDFSimilarity) explainScore(doc int, freq search.Explanation,
 	queryExpl.AddDetail(queryNormExpl)
 
 	// explain field weight
-	tfExplanation := search.NewExplanation(ss.spi.tf(freq.Value()),
+	tfExplanation := search.NewExplanation(ss.owner.tf(freq.Value()),
 		fmt.Sprintf("tf(freq=%v), with freq of:", freq.Value()))
 	tfExplanation.AddDetail(freq)
 	fieldNorm := float32(1)
 	if norms != nil {
-		fieldNorm = ss.spi.decodeNormValue(norms(doc))
+		fieldNorm = ss.owner.decodeNormValue(norms(doc))
 	}
 	fieldNormExpl := search.NewExplanation(fieldNorm, fmt.Sprintf("fieldNorm(doc=%v)", doc))
 	fieldExpl := search.NewExplanation(

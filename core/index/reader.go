@@ -210,6 +210,7 @@ func (r *IndexReaderImpl) Leaves() []*AtomicReaderContext {
 }
 
 type IndexReaderContext interface {
+	IsTopLevel() bool
 	Reader() IndexReader
 	Parent() *CompositeReaderContext
 	Leaves() []*AtomicReaderContext
@@ -233,6 +234,10 @@ func newIndexReaderContext(parent *CompositeReaderContext, ordInParent, docBaseI
 
 func (ctx *IndexReaderContextImpl) Parent() *CompositeReaderContext {
 	return ctx.parent
+}
+
+func (ctx *IndexReaderContextImpl) IsTopLevel() bool {
+	return ctx.isTopLevel
 }
 
 type ARFieldsReader interface {

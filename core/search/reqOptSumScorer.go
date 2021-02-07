@@ -7,7 +7,7 @@ import (
 // A Scorer for queries with a required part and an optional part.
 // Delays skipTo() on the optional part until a score() is needed.
 type ReqOptSumScorer struct {
-	*abstractScorer
+	abstractScorer
 	reqScorer, optScorer Scorer
 }
 
@@ -19,7 +19,7 @@ func newReqOptSumScorer(reqScorer, optScorer Scorer) (*ReqOptSumScorer, error) {
 		optScorer: optScorer,
 	}
 
-	ans.abstractScorer = newScorer(ans, reqScorer.Weight())
+	ans.weight = reqScorer.Weight()
 	return ans, nil
 }
 

@@ -11,7 +11,7 @@ import (
  * and it uses the skipTo() on the given scorers.
  */
 type ReqExclScorer struct {
-	*abstractScorer
+	abstractScorer
 	reqScorer Scorer
 	exclDisi  DocIdSetIterator
 	doc       int
@@ -24,7 +24,7 @@ func newReqExclScorer(reqScorer Scorer, exclDisi DocIdSetIterator) (*ReqExclScor
 		doc:       -1,
 	}
 
-	ans.abstractScorer = newScorer(ans, reqScorer.Weight())
+	ans.weight = reqScorer.Weight()
 	return ans, nil
 }
 

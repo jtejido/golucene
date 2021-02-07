@@ -2,6 +2,7 @@ package search
 
 import (
 	"github.com/jtejido/golucene/core/index"
+	"github.com/jtejido/golucene/core/util"
 )
 
 // search/similarities/Similarity.java
@@ -110,19 +111,13 @@ type Similarity interface {
  * {@link SimScorer#computeSlopFactor(int)}.
  */
 type SimScorer interface {
-	/**
-	 * Score a single document
-	 * @param doc document id within the inverted index segment
-	 * @param freq sloppy term frequency
-	 * @return document's score
-	 */
 	Score(doc int, freq float32) float32
-	// Explain the score for a single document
-	Explain(int, Explanation) Explanation
+	ComputeSlopFactor(distance int) float32
+	ComputePayloadFactor(doc, start, end int, payload *util.BytesRef) float32
+	Explain(doc int, freq Explanation) Explanation
 }
 
 type SimWeight interface {
 	ValueForNormalization() float32
 	Normalize(norm float32, topLevelBoost float32)
-	Field() string
 }

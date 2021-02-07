@@ -10,14 +10,14 @@ import (
 /** Expert: A <code>Scorer</code> for documents matching a <code>Term</code>.
  */
 type TermScorer struct {
-	*abstractScorer
+	abstractScorer
 	docsEnum  DocsEnum
 	docScorer SimScorer
 }
 
-func newTermScorer(w Weight, td DocsEnum, docScorer SimScorer) *TermScorer {
+func newTermScorer(weight Weight, td DocsEnum, docScorer SimScorer) *TermScorer {
 	ans := &TermScorer{docsEnum: td, docScorer: docScorer}
-	ans.abstractScorer = newScorer(ans, w)
+	ans.weight = weight
 	return ans
 }
 

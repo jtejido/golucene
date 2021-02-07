@@ -30,7 +30,7 @@ func NewIndexSearcher(r index.IndexReader) *IndexSearcher {
 }
 
 func NewIndexSearcherFromContext(context index.IndexReaderContext) *IndexSearcher {
-	// assert2(context.isTopLevel, "IndexSearcher's ReaderContext must be topLevel for reader %v", context.reader())
+	assert2(context.IsTopLevel(), "IndexSearcher's ReaderContext must be topLevel for reader %v", context.Reader())
 	defaultSimilarity := index.DefaultSimilarity().(Similarity)
 	ss := &IndexSearcher{nil, context.Reader(), context, context.Leaves(), defaultSimilarity}
 	ss.spi = ss
